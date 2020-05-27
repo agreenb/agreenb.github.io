@@ -18,7 +18,6 @@
 	font-weight: normal;
 	font-style: normal;
 }
-
 @font-face {
 	font-family: 'adelle_rgregular';
 	src: url('https://litmus.com/fonts/Emails/adelle_reg-webfont.eot');
@@ -32,45 +31,27 @@
 
 body {
 	font-family: 'proxima_nova_rgregular', Helvetica, Arial, sans-serif;
+	/*font-size: 18px;*/
 }
+
 h1 {
    font-family: 'proxima_nova_rgbold', Helvetica, Arial, sans-serif;
 }
 
 td {
-	padding: 10px;
-}
-
-.leftcolumn {
-  float: left;
-  width: 300px;
-  padding: 50px;
-  padding-right: 80px;
-}
-
-.rightcolumn {
-  float: left;
-  /*width: 500px;*/
-  padding: 50px;
-}
-
-@media (max-width: 900px) {
-  .leftcolumn, .rightcolumn{
-    width: 90%;
-  }
+	padding-bottom: 15px;
 }
 
 .logo {
 	width: 20px;
 	height: 20px;
-	padding-right: 5px;
-	-webkit-filter: grayscale(100%);
-  	filter: grayscale(100%);
+	margin-top: -5px;
+	margin-right: 3px;
 }
 
 .icon {
- 	width: 20px;
- 	height: 20px;
+ 	width: 40px;
+ 	height: 40px;
  	opacity: 0.75;
  	padding: 10px;
 
