@@ -59,7 +59,7 @@ h1 {
  	padding: 10px;
 
 }
-.icon:hover, a:hover, .tr:hover {
+.icon:hover, .tr:hover {
 	background-color: #F1F1F1;
 }
 
