@@ -59,8 +59,38 @@ h1 {
  	padding: 10px;
 
 }
-.icon:hover, .tr:hover {
+.icon:hover, .tr:hover, .btn:hover {
 	background-color: #F1F1F1;
+}
+
+.panel-title a {
+	display:block;
+}
+
+.panel-heading a:after {
+    position: relative;
+    content: "";
+    display: inline-block;
+    width: 0.4em;
+    height: 0.4em;
+    border-right: 0.1em solid black;
+    border-top: 0.1em solid black;
+    transform: rotate(135deg); 
+    margin-top:.3em;
+    margin-right: 0.5em;
+    float:right;
+}
+
+.panel-heading.collapsed a:after {
+	-webkit-transform: rotate(45deg);
+	-moz-transform: rotate(45deg);
+	transform: rotate(-45deg);
+	margin-top:.5em;
+	margin-bottom:-.2em
+} 
+
+.experience {
+	margin-top:2em
 }
 
 a:link, a:visited
