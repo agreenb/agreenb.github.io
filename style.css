@@ -89,7 +89,7 @@ h1 {
 	margin-bottom:-.2em
 } 
 
-.experience {
+.projects, .photos {
 	margin-top:2em
 }
 
@@ -99,3 +99,12 @@ a:link, a:visited
    text-decoration: none;
 }
 
+#snake-image {
+	border: 5px solid white;
+}
+
+#snake-image:hover {
+    opacity:1;
+    border: 5px solid #198006;
+    box-shadow: 4px 4px 5px #18590C;
+}
