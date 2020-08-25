@@ -132,8 +132,8 @@ $(function() {
 		if (user_input) {
 			user_input_array = user_input.split("");
 			user_input_array.push(" ", "♡", " ");
-			user_input_pos = 0;
 		}
+		user_input_pos = 0;
 		word_score = 0;
 
 		snake_array = [];
