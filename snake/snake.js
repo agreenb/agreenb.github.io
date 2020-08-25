@@ -20,7 +20,8 @@ $(function() {
 	var curr_word = "";
 	var game_start = true;
 	var user_input = "";
-	var user_input_array; // Character array of user input
+	var user_input_pos = 0;
+	var user_input_array = [];
 
 	function create_snake(length) {
 		var init_word = "";
@@ -59,8 +60,10 @@ $(function() {
 	}
 
 	function randomLetter() {
-		if (user_input_array.length) {
-			return user_input_array.shift();
+		if (user_input) {
+			var curr_letter = user_input_array[user_input_pos];
+			user_input_pos = (user_input_pos + 1) % user_input_array.length;
+			return curr_letter;
 		} else {
 			var alphabet = [' ', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', ' ', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
 				'P', '♡', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', ' ', 'X', 'Y', 'Z'];
@@ -124,7 +127,12 @@ $(function() {
 
 	function start_init() {
 		user_input = $("#word-input").val().toUpperCase();
-		user_input_array = user_input.split("");
+		if (user_input) {
+			user_input_array = user_input.split("");
+			user_input_array.push(" ", "♡", " ");
+			user_input_pos = 0;
+		}
+		word_score = 0;
 
 		snake_array = [];
 		dir = "right";
@@ -201,7 +209,6 @@ $(function() {
 			snake_text += snake_array[i].letter;
 		}
 		if (user_input !== "") {
-			console.log("Beep", snake_text.toUpperCase(), user_input.toUpperCase(), snake_text.toUpperCase().indexOf(user_input.toUpperCase()))
 			if ((snake_text.toUpperCase().indexOf(user_input.toUpperCase()) == 0) ||
 				(user_input.toUpperCase().indexOf(snake_text.toUpperCase()) == 0)) {
 				console.log("snake text", snake_text)
