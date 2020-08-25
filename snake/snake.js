@@ -26,9 +26,9 @@ $(function() {
 	function create_snake(length) {
 		var init_word = "";
 		for (var i = length - 1; i >= 0; i--) {
-			var random = randomLetter();
-			snake_array.push({x:i, y:0, letter: random})
-			init_word += random;
+			var letter = getLetter();
+			snake_array.push({x:i, y:0, letter: letter})
+			init_word += letter;
 		}
 		init_length = length;
 		curr_word = init_word;
@@ -59,16 +59,18 @@ $(function() {
 		ctx.strokeRect(cw*x, cw*y, cw, cw);
 	}
 
-	function randomLetter() {
-		if (user_input) {
-			var curr_letter = user_input_array[user_input_pos];
-			user_input_pos = (user_input_pos + 1) % user_input_array.length;
-			return curr_letter;
-		} else {
-			var alphabet = [' ', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', ' ', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
-				'P', '♡', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', ' ', 'X', 'Y', 'Z'];
-			return alphabet[Math.floor(Math.random()*30)];
+	function getLetter() {
+		if (!user_input && user_input_pos == 0) {
+			var words = ['magic', 'snake', 'quidditch', 'san francisco', 'onomatopoeia', 'jamba juice', 'turtle', 'rainbow', 'moose',
+				'aplomb', 'balderdash', 'bamboozle', 'hippopotamus', 'hooligan', 'hullabaloo', 'kaleidoscope', 'papyrus', 'serendipity', 'spellbind',
+				'tchotchke', 'wonky', 'zeitgeist', 'harry potter'];
+			random_word = words[Math.floor(Math.random() * words.length)]
+			user_input_array = random_word.toUpperCase().split("");
+			user_input_array.push(" ", "♡", " ");
 		}
+		var curr_letter = user_input_array[user_input_pos];
+		user_input_pos = (user_input_pos + 1) % user_input_array.length;
+		return curr_letter;
 	}
 
 
@@ -249,7 +251,7 @@ $(function() {
 						return;
 					}
 				}
-				food[count] = {x: random_coord_1, y:random_coord_2, letter: randomLetter()};
+				food[count] = {x: random_coord_1, y:random_coord_2, letter: getLetter()};
 			}
 		}
 	}
