@@ -32,11 +32,11 @@
 body {
 	font-family: 'proxima_nova_rgregular', Helvetica, Arial, sans-serif;
 	font-size: 1em;
-   background-image: url(img/wall-e.png);
-   background-repeat: no-repeat;
-   background-position: 0% 100%;
-   background-attachment: fixed;
-  	background-size: 50px;
+	background-image: url(img/wall-e.png);
+	background-repeat: no-repeat;
+	background-position: 0% 100%;
+	background-attachment: fixed;
+	background-size: 50px;
 }
 
 h1 {
