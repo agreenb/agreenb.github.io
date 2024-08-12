@@ -1,6 +1,4 @@
 // Potential add-ons:
-// - user shoots at invaders
-// - keep and display score
 // - different invader rows give different points when hit
 // - power-ups dropped from invaders,
 //   e.g. extra points, temp increased user bullet speed, temp user invincibility
@@ -17,7 +15,7 @@ $(function () {
   $("#canvas").attr("width", canvas_width);
   $("#canvas").attr("height", canvas_height);
 
-  // How to set up the grid.
+  // Set up the grid.
   const cell_size_factor = 20;
   const cell_size = canvas_width / cell_size_factor;
   const num_invader_rows = 3;
@@ -43,6 +41,7 @@ $(function () {
   var bullets = [];
   var bullet_width = 5;
   var bullet_height = 5;
+  var num_invaders = 0;
 
   function init_screen() {
     // Reset variables.
@@ -53,6 +52,7 @@ $(function () {
     invader_dir = "right";
     bullets = [];
     score = 0;
+    num_invaders = 0;
 
     // Add all invaders.
     ctx.fillStyle = "black";
@@ -63,6 +63,7 @@ $(function () {
         var cell = { row: row, col: col, color: "green" };
         invader_col.push(cell);
         paint_cell(cell, cell_size, cell_size);
+        num_invaders++;
       }
       invaders.push(invader_col);
     }
@@ -79,10 +80,6 @@ $(function () {
     ctx.fillStyle = cell.color;
     var x = (cell_size + cell_padding) * cell.col;
     var y = (cell_size + cell_padding) * cell.row;
-    // if (is_bullet) {
-    //   x += cell_size / 2
-    //   y += cell_size * 1.5
-    // }
     ctx.fillRect(x, y, width, height);
   }
 
@@ -169,7 +166,7 @@ $(function () {
             case "down":
               invader.row += 1;
               if (invader.row >= max_row) {
-                game_over();
+                game_over(false);
                 break;
               }
               if (prev_invader_dir == "right") {
@@ -225,14 +222,17 @@ $(function () {
         if (check_user_bullet_collision_with_invader(bullet)) {
           const index = bullets.indexOf(bullet);
           bullets.splice(index, 1);
+          if (num_invaders == 0) {
+            game_over(true);
+            return
+          }
         }
       } else {
         // Otherwise, render the bullet and check if it overlaps with the user.
         // If so, end the game.
         paint_cell(bullet, bullet_width, bullet_height, true);
         if (check_invader_bullet_collision_with_user(bullet)) {
-          game_over();
-          return;
+          game_over(false);
         }
       }
     }
@@ -250,6 +250,7 @@ $(function () {
         ) {
           const index = invaders[col].indexOf(invader);
           invaders[col].splice(index, 1);
+          num_invaders--;
           score++;
           return true;
         }
@@ -294,14 +295,20 @@ $(function () {
     });
   }
 
-  function game_over() {
+  function game_over(user_won) {
     end_of_game = true;
     clearInterval(refresh_interval);
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas_width, canvas_height);
     ctx.font = "bold 30px Helvetica";
     ctx.fillStyle = "green";
-    ctx.fillText("Game Over", 120, 200);
+    ctx.fillText("Game Over", 130, 200);
+    ctx.font = "18px Helvetica";
+    if (user_won) {
+      ctx.fillText("You won! Score: " + score, 130, 240);
+    } else {
+      ctx.fillText("Invaders won! Try again.", 115, 240);
+    }
   }
 
   function start() {
