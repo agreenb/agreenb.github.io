@@ -1,1 +1,1 @@
-Alexa Greenberg's personal website
+Personal website for Alexa Greenberg
