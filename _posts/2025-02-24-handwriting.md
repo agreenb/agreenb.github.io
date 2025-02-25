@@ -342,11 +342,11 @@ These refinements steadily brought loss down.
 
 ## Conclusion and Key Takeaways
 
-1. **Sequential Data**
+1. **Sequential data**
 
    The same concepts for handling pen lift and Δx, Δy in an autoregressive way can be applied to controlling a robot or simulating other continuous systems.
 
-2. **Text Conditioning**
+2. **Text conditioning**
 
    Leveraging cross-attention and positional encodings allows the model to align characters with specific stroke segments, which can scale to conditioning on other modalities, like images or sensor data in robotics.
 
