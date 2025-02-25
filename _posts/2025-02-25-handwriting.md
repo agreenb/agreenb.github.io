@@ -287,6 +287,10 @@ I first tried 8–12 heads and 6–8 layers, but it was overkill that slowed dow
 
 While debugging, a huge interpretability boost was subclassing `nn.TransformerDecoderLayer` to return cross-attention weights. Plotting them as heatmaps (stroke_tokens × text_tokens) let me check alignment and quickly debug a bunch of situations (e.g. text completely ignored, positional encodings ignored, everything fixated on the first letter).
 
+![Screenshot: cross-attention weight visualization](/assets/images/image9.png)
+
+The code behind it:
+
 ```python
 class CustomDecoderLayer(nn.TransformerDecoderLayer):
     def __init__(self, d_model, nhead, dim_feedforward=1024):
@@ -329,8 +333,6 @@ class CustomDecoderLayer(nn.TransformerDecoderLayer):
         else:
             return tgt, None, None
 ```
-
-![Screenshot: cross-attention weight visualization](/assets/images/image9.png)
 
 ---
 

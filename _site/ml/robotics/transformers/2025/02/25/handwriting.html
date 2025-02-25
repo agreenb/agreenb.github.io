@@ -415,6 +415,10 @@ Transformers better capture long-range dependencies through self-attention, and 
 
 <p>While debugging, a huge interpretability boost was subclassing <code class="language-plaintext highlighter-rouge">nn.TransformerDecoderLayer</code> to return cross-attention weights. Plotting them as heatmaps (stroke_tokens × text_tokens) let me check alignment and quickly debug a bunch of situations (e.g. text completely ignored, positional encodings ignored, everything fixated on the first letter).</p>
 
+<p><img src="/assets/images/image9.png" alt="Screenshot: cross-attention weight visualization" /></p>
+
+<p>The code behind it:</p>
+
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">CustomDecoderLayer</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">TransformerDecoderLayer</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">nhead</span><span class="p">,</span> <span class="n">dim_feedforward</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">().</span><span class="n">__init__</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">nhead</span><span class="p">,</span> <span class="n">dim_feedforward</span><span class="o">=</span><span class="n">dim_feedforward</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="n">DROPOUT</span><span class="p">,</span> <span class="n">batch_first</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -456,8 +460,6 @@ Transformers better capture long-range dependencies through self-attention, and 
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">tgt</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
 </code></pre></div></div>
-
-<p><img src="/assets/images/image9.png" alt="Screenshot: cross-attention weight visualization" /></p>
 
 <hr />
 
