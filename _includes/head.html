@@ -1,0 +1,32 @@
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Bootstrap CSS -->
+  <link
+    rel="stylesheet"
+    href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+  />
+
+  <!-- Main site styles -->
+  <link rel="stylesheet" href="{{ '/assets/main.css' | relative_url }}" />
+
+  <!-- Force Proxima Nova Globally -->
+  <style>
+    body {
+      font-family: "proxima_nova_rgregular", Helvetica, Arial, sans-serif !important;
+    }
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      font-family: "proxima_nova_rgbold", Helvetica, Arial, sans-serif !important;
+    }
+  </style>
+
+  {%- feed_meta -%} {%- if jekyll.environment == 'production' and
+  site.google_analytics -%} {%- include google-analytics.html -%} {%- endif -%}
+</head>

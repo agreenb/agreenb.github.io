@@ -1,97 +1,155 @@
 @font-face {
-	font-family: 'proxima_nova_rgregular';
-	src: url('https://litmus.com/fonts/Emails/proximanova-regular-webfont.eot');
-	src: url('https://litmus.com/fonts/Emails/proximanova-regular-webfont.eot?#iefix') format('embedded-opentype'),
-		 url('https://litmus.com/fonts/Emails/proximanova-regular-webfont.woff') format('woff'),
-		 url('https://litmus.com/fonts/Emails/proximanova-regular-webfont.ttf') format('truetype'),
-		 url('https://litmus.com/fonts/Emails/proximanova-regular-webfont.svg#proxima_nova_rgregular') format('svg');
-	font-weight: normal;
-	font-style: normal;
+  font-family: "proxima_nova_rgregular";
+  src: url("https://litmus.com/fonts/Emails/proximanova-regular-webfont.eot");
+  src: url("https://litmus.com/fonts/Emails/proximanova-regular-webfont.eot?#iefix")
+      format("embedded-opentype"),
+    url("https://litmus.com/fonts/Emails/proximanova-regular-webfont.woff")
+      format("woff"),
+    url("https://litmus.com/fonts/Emails/proximanova-regular-webfont.ttf")
+      format("truetype"),
+    url("https://litmus.com/fonts/Emails/proximanova-regular-webfont.svg#proxima_nova_rgregular")
+      format("svg");
+  font-weight: normal;
+  font-style: normal;
 }
 @font-face {
-	font-family: 'proxima_nova_rgbold';
-	src: url('https://litmus.com/fonts/Emails/proximanova-bold-webfont.eot');
-	src: url('https://litmus.com/fonts/Emails/proximanova-bold-webfont.eot?#iefix') format('embedded-opentype'),
-		 url('https://litmus.com/fonts/Emails/proximanova-bold-webfont.woff') format('woff'),
-		 url('https://litmus.com/fonts/Emails/proximanova-bold-webfont.ttf') format('truetype'),
-		 url('https://litmus.com/fonts/Emails/proximanova-bold-webfont.svg#proxima_nova_rgbold') format('svg');
-	font-weight: normal;
-	font-style: normal;
+  font-family: "proxima_nova_rgbold";
+  src: url("https://litmus.com/fonts/Emails/proximanova-bold-webfont.eot");
+  src: url("https://litmus.com/fonts/Emails/proximanova-bold-webfont.eot?#iefix")
+      format("embedded-opentype"),
+    url("https://litmus.com/fonts/Emails/proximanova-bold-webfont.woff")
+      format("woff"),
+    url("https://litmus.com/fonts/Emails/proximanova-bold-webfont.ttf")
+      format("truetype"),
+    url("https://litmus.com/fonts/Emails/proximanova-bold-webfont.svg#proxima_nova_rgbold")
+      format("svg");
+  font-weight: normal;
+  font-style: normal;
 }
 @font-face {
-	font-family: 'adelle_rgregular';
-	src: url('https://litmus.com/fonts/Emails/adelle_reg-webfont.eot');
-	src: url('https://litmus.com/fonts/Emails/adelle_reg-webfont.eot?#iefix') format('embedded-opentype'),
-		 url('https://litmus.com/fonts/Emails/adelle_reg-webfont.woff') format('woff'),
-		 url('https://litmus.com/fonts/Emails/adelle_reg-webfont.ttf') format('truetype'),
-		 url('https://litmus.com/fonts/Emails/adelle_reg-webfont.svg#adelle_rgregular') format('svg');
-	font-weight: normal;
-	font-style: normal;
+  font-family: "adelle_rgregular";
+  src: url("https://litmus.com/fonts/Emails/adelle_reg-webfont.eot");
+  src: url("https://litmus.com/fonts/Emails/adelle_reg-webfont.eot?#iefix")
+      format("embedded-opentype"),
+    url("https://litmus.com/fonts/Emails/adelle_reg-webfont.woff")
+      format("woff"),
+    url("https://litmus.com/fonts/Emails/adelle_reg-webfont.ttf")
+      format("truetype"),
+    url("https://litmus.com/fonts/Emails/adelle_reg-webfont.svg#adelle_rgregular")
+      format("svg");
+  font-weight: normal;
+  font-style: normal;
 }
 
 body {
-	font-family: 'proxima_nova_rgregular', Helvetica, Arial, sans-serif;
-	font-size: 1em;
+  font-family: "proxima_nova_rgregular", Helvetica, Arial, sans-serif;
+  font-size: 1em;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+.homepage-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100vh; /* Ensures content is centered and no scroll */
 }
 
 h1 {
-   font-family: 'proxima_nova_rgbold', Helvetica, Arial, sans-serif;
-   font-size:2.2em;
+  font-family: "proxima_nova_rgbold", Helvetica, Arial, sans-serif;
+  font-size: 2.2em;
 }
 
 .tr {
-	padding-bottom: 20px;
-	padding-top: 20px;
-	border-top: 1px solid #E0E0E0;
+  padding-bottom: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
 }
 
 .logo {
-	width: 20px;
-	height: 20px;
-	margin-top: -5px;
-	margin-right: 3px;
+  width: 20px;
+  height: 20px;
+  margin-top: -5px;
+  margin-right: 3px;
 }
 
 .icon {
- 	width: 40px;
- 	height: 40px;
- 	opacity: 0.75;
- 	padding: 10px;
-
+  width: 40px;
+  height: 40px;
+  opacity: 0.75;
+  padding: 10px;
 }
-.icon:hover, .tr:hover, .btn:hover {
-	background-color: #F1F1F1;
+.icon:hover,
+.tr:hover,
+.btn:hover {
+  background-color: #f1f1f1;
 }
 
 .panel-title a {
-	display:block;
+  display: block;
 }
 
 .panel-heading a:after {
-    position: relative;
-    content: "";
-    display: inline-block;
-    width: 0.4em;
-    height: 0.4em;
-    border-right: 0.1em solid black;
-    border-top: 0.1em solid black;
-    transform: rotate(-45deg); 
-    margin-top:.4em;
-    margin-right: 0.5em;
-    float:right;
+  position: relative;
+  content: "";
+  display: inline-block;
+  width: 0.4em;
+  height: 0.4em;
+  border-right: 0.1em solid black;
+  border-top: 0.1em solid black;
+  transform: rotate(-45deg);
+  margin-top: 0.4em;
+  margin-right: 0.5em;
+  float: right;
 }
 
 .panel-heading.collapsed a:after {
-	-webkit-transform: rotate(135deg);
-	-moz-transform: rotate(135deg);
-	transform: rotate(135deg);
-	margin-top:.3em;
-	margin-bottom:-.2em
-} 
-
-a:link, a:visited
-{
-   color: black;
-   text-decoration: none;
+  -webkit-transform: rotate(135deg);
+  -moz-transform: rotate(135deg);
+  transform: rotate(135deg);
+  margin-top: 0.3em;
+  margin-bottom: -0.2em;
 }
 
+a:link,
+a:visited {
+  color: black;
+  text-decoration: none;
+}
+
+/* 1) BACK TO BLOG LINK */
+.back-link,
+.back-link:visited {
+  color: #777 !important; /* Light gray */
+  text-decoration: none; /* Remove underline if desired */
+}
+.back-link:hover {
+  color: #555 !important; /* Slightly darker gray on hover */
+  text-decoration: underline; /* Underline on hover (optional) */
+}
+
+/* 2) BLOG TITLES ( e.g., <h3 class="post-title"><a href="...">Title</a></h3> ) */
+.post-title a,
+.post-title a:visited {
+  color: #777 !important;
+  text-decoration: none;
+}
+.post-title a:hover {
+  color: #555 !important;
+  text-decoration: underline;
+}
+
+/* 3) READ MORE BUTTON (overriding Bootstrap’s .btn.btn-primary) */
+.btn.btn-primary {
+  background-color: transparent !important;
+  border-color: #999 !important;
+  color: #777 !important;
+}
+.btn.btn-primary:hover {
+  background-color: #eee !important;
+  border-color: #666 !important;
+  color: #555 !important;
+}

@@ -1,0 +1,15 @@
+# Build settings
+theme: minima
+
+markdown: kramdown
+highlighter: rouge
+
+permalink: /blog/:title/
+paginate: 5
+
+plugins:
+  - jekyll-paginate
+  - jekyll-seo-tag
+
+exclude:
+  - etc/
