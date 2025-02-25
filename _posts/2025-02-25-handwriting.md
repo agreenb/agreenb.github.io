@@ -7,17 +7,17 @@ categories: [ml, robotics, transformers]
 
 ## Introduction
 
-I see online handwriting generation — predicting pen strokes in real time — as a fun project that relates to **robotic trajectory modeling**. A robot typically follows a sequence of motor commands (like Δx and Δy) plus discrete events (like lifting a pen or opening a gripper). My goal was to feel extremely comfortable with building a multimodal transformer for a real task, with everything from scratch: data processing, model development, training pipelines, experimentation, visualization. <!--more-->
-My larger goal is to unify these ideas into a more general foundation model that can handle text or visual inputs and produce continuous movements, whether handwriting strokes or robot actions.
+I took on online handwriting generation — predicting pen strokes in real time — as a fun project that translates naturally **robotic trajectory modeling**. A robot follows continuous motor commands (e.g. Δx and Δy) plus discrete events (e.g. gripper opens). My primary goal was to gain hands-on experience building a **multimodal transformer** end to end: from tokenizing data, to training, to visualizing results. <!--more-->
+My larger goal will be to bring these ideas into a large foundation model that can produce continuous movements, whether handwriting strokes or robot actions.
 
 I'll go over:
 
-- My **data representation** with Δx, Δy, pen lift.
-- Why discrete **transformers** improved over the **RNN + GMM** approach for me.
-- Moving to a multitask, multimodal model.
-- Debugging tips: overfitting on small dataset subsets, cross-attention visualization, and more.
-- How this approach ties into SOTA robotic transformers.
-- Final results and next steps, including bridging to massive **foundation models**.
+- How I represent **Δx, Δy, pen lift** events
+- Why a **discrete transformer** worked best
+- Shifting to **multitask, multimodal** modeling
+- Key debugging tricks (attention visualization, mini-datasets)
+- Ties to **robotic transformers** like RT-Trajectory
+- Future directions toward **foundation models** with text and continuous movements
 
 ---
 
@@ -76,7 +76,7 @@ These approaches cover vision-language data, 2D trajectories, and a separation o
 
 ##### 1) Δx, Δy, pen lift Format
 
-I started with a stroke dataset where each timestep has three values:
+I started with a handwriting stroke dataset where each sequence consists of variable-length timesteps, each represented by three values:
 
 - **Δx**: movement in x from the previous point
 - **Δy**: movement in y
@@ -86,10 +86,13 @@ I started with a stroke dataset where each timestep has three values:
 
 Alex Graves' [classic handwriting approach](https://arxiv.org/pdf/1308.0850) uses an RNN and mixture density network (MDN) to model continuous stroke distributions.
 
+<details markdown="1">
+<summary>Click for details on how I started with that approach</summary>
+<br />
 1. **MDN background**
 
-   - **Gaussian Mixture Model:** A probabilistic approach assuming data arises from multiple Gaussian distributions, each with its own mean, variance, and mixture weight.
-   - **Mixture Density Network:** A neural network that outputs the parameters of a GMM at each timestep, giving a continuous distribution over Δx and Δy.
+- **Gaussian Mixture Model:** A probabilistic approach assuming data arises from multiple Gaussian distributions, each with its own mean, variance, and mixture weight.
+- **Mixture Density Network:** A neural network that outputs the parameters of a GMM at each timestep, giving a continuous distribution over Δx and Δy.
 
 2. **Why I started with this approach**
 
@@ -104,22 +107,26 @@ Alex Graves' [classic handwriting approach](https://arxiv.org/pdf/1308.0850) use
 
    It took time to dig into the model outputs and realize that mode collapse was causing this behavior. The model was always choosing the same Gaussian distribution, leading to repetitive, unnatural stroke patterns. This realization led me to shift toward discrete tokenization, which eliminated that unnatural diagonal stroke bias.
 
-4. **Discrete transformers: simpler and more stable**
-   - **Tokenized approach fits transformers:** Transformers excel at tokenized data, and binning Δx and Δy allowed me to use standard classification and cross-entropy.
-   - **Tokenization works with the data**: Handwriting deltas span a small range, so discretizing them doesn't sacrifice much resolution or smoothness.
-   - **No continuous sampling quirks:** Inference just relies on picking the next token from a softmax distribution.
-   - **Easier debugging:** Digging into stroke tokens or mispredicted pen-lift is way easier than debugging multi-dimensional Gaussians.
+</details>
+<br />
+My takeaway was that discrete transformers would be far simpler and more stable.
+
+- **Tokenized approach fits transformers:** Transformers excel at tokenized data, and binning Δx and Δy allowed me to use standard classification and cross-entropy.
+- **Tokenization works with the data**: Handwriting deltas span a small range, so discretizing them doesn't sacrifice much resolution or smoothness.
+- **No continuous sampling quirks:** Inference just relies on picking the next token from a softmax distribution.
+- **Easier debugging:** Digging into stroke tokens or mispredicted pen-lift is way easier than debugging multi-dimensional Gaussians.
 
 ##### 3) Tokenizing handwriting strokes
 
-First, I used **discrete binning** of Δx and Δy to turn continuous deltas into discrete tokens.
-The original distribution of Δx and Δy values shows how most stroke movements are small and clustered around zero, while larger movements are significantly less frequent.
+First, I generated **discrete bins** of Δx and Δy to tokenize the continuous values. From the raw values below, you can see how most movements in the dataset are small and clustered around zero, while larger movements are significantly less frequent.
 
 ![Screenshot 6: Raw Δx, Δy Distribution](/assets/images/image6.png)
 
-I implemented **adaptive binning**, which processed Δx and Δy into 24 bins each, allowing the transformer to autoregressively predict the next best token.
+I implemented **adaptive binning**, processing Δx and Δy into 24 bins each, making it easy for the transformer to autoregressively predict the next best move.
 
-The binning strategy:
+<details markdown="1">
+<summary>Click for adaptive binning details</summary>
+<br />
 
 - **Fine resolution near zero**  
   Most strokes are small movements around Δx, Δy. By using uniform bins around zero, where most handwriting variations occur, the model can distinguish subtle pen movements.
@@ -130,19 +137,24 @@ The binning strategy:
 - **Adaptive refinement**  
   Merge any bins with low data counts and adding extra bins where data was densest, maintaining a well-spaced distribution.
 
-Computed bin edges after adaptive binning:
+  Computed bin edges after adaptive binning:
 
-![Screenshot 7: Adaptive Binning Bin Edges](/assets/images/image7.png)
+  ![Screenshot 7: Adaptive Binning Bin Edges](/assets/images/image7.png)
 
-You can see that Δx and Δy are evenly distributed in their token classes, rather than being concentrated in a few highly populated ones. Small pen adjustments and larger strokes are properly represented, whereas uniform binning would have wasted resolution on rare big moves.
+</details>
+<br />
+Now, Δx and Δy are evenly distributed in their token classes. Small pen adjustments and larger strokes are properly represented, whereas uniform binning would have wasted resolution on rare big moves.
 
 ![Screenshot 8: Adaptive Binning Applied to Δx, Δy](/assets/images/image8.png)
 
 Great! Now the model can just classify the next token with standard cross-entropy loss, rather than needing to regress to floating-point values.
 
-###### Tokenizer
+##### 4) Implementing a tokenizer
 
 At first, I used [tiktoken](https://github.com/openai/tiktoken), the tokenizer for GPT-4 with a 100K subword vocabulary. When my model wouldn't converge, the first "duh" moment was that it was obviously overkill for my simple dataset and use case. I wrote a custom ASCII tokenizer of just 96 characters.
+
+<details markdown="1">
+<summary>Click to see that implementation</summary>
 
 ```python
 class CharTokenizer:
@@ -197,9 +209,12 @@ class CharTokenizer:
             self.itos[idx] if 0 <= idx < len(self.itos) else self.unk_token
             for idx in token_ids
         )
+
 ```
 
-##### 4) Unconditional generation with a transformer
+</details>
+<br />
+##### 5) Generating unconditional handwriting with a transformer
 
 I first tested a transformer that generated new strokes based on previous strokes:
 
@@ -228,6 +243,9 @@ Now it was time to make the model more useful and multimodal. I wanted to input 
 - **Cross-attention validation**: I monitored attention matrices to ensure stroke tokens referenced text embeddings when text was present, while still autoregressing correctly on strokes when text was absent. If attention was uniformly distributed across text tokens, it indicated the model was ignoring the text, requiring adjustments to positional encodings or cross-attention layers.
 
 This text-conditioned generation allowed the model to map language directly onto structured, sequential handwriting motion.
+
+<details markdown="1">
+<summary>Click to see that implementation</summary>
 
 ```python
 class TransformerStrokeModel(nn.Module):
@@ -260,6 +278,8 @@ class TransformerStrokeModel(nn.Module):
         /* ... */
 ```
 
+</details>
+
 ---
 
 #### Stage 3: Debugging strategy
@@ -281,15 +301,16 @@ class TransformerStrokeModel(nn.Module):
 
 ##### Simplify
 
-I first tried 8–12 heads and 6–8 layers, but it was overkill that slowed down training because of wasted model capacity on limited data. 2–4 heads and 1–3 layers gave quicker convergence and easier debugging.
+An underlying theme was paring down complexity. For instance, I started experiments with 8–12 heads and 6–8 layers, but quickly learned that was overkill that slowed down training. 2–4 heads and 1–3 layers converged way faster and were easier to debug.
 
 ##### Visualizing attention weights in PyTorch
 
 While debugging, a huge interpretability boost was subclassing `nn.TransformerDecoderLayer` to return cross-attention weights. Plotting them as heatmaps (stroke_tokens × text_tokens) let me check alignment and quickly debug a bunch of situations (e.g. text completely ignored, positional encodings ignored, everything fixated on the first letter).
 
-![Screenshot: cross-attention weight visualization](/assets/images/image9.png)
+<img src="/assets/images/image9.png" alt="Screenshot: cross-attention weight visualization" width="400">
 
-The code behind it:
+<details markdown="1">
+<summary>Click to see that implementation</summary>
 
 ```python
 class CustomDecoderLayer(nn.TransformerDecoderLayer):
@@ -334,15 +355,17 @@ class CustomDecoderLayer(nn.TransformerDecoderLayer):
             return tgt, None, None
 ```
 
+</details>
+
 ---
 
 #### Stage 5: Refining conditional generation
 
-With the basics working, I could now focus on long-tail wins:
+With the basics working, I could now focus on more interesting tweaks, like:
 
-- **pen lift** weighting: the pen is only lifted 5% of the time in the dataset, so I used focal loss.
-- **Temperature sampling**: preventing repetitive loops at inference time.
-- **Occasional no-text**: forcing unconditional mode half the time to preserve general scribble ability.
+- **pen lift** weighting. The pen was only lifted 5% of the time in the dataset, so I used focal loss.
+- **Temperature sampling** to prevent repetitive loops at inference time.
+- **Occasional no-text** to handle both the conditional and unconditional tasks.
 
 ---
 
@@ -397,7 +420,8 @@ I spent a lot of time visualizing:
 
 ## Example outputs
 
-##### Early MDN generation
+<details markdown="1">
+<summary>Click for early MDN generation</summary>
 
 ![Screenshot 5: Early Transformer + MDN Generation](/assets/images/image5.png)
 
@@ -409,9 +433,12 @@ I spent a lot of time visualizing:
 
 After trying a lot of hyperparameter tuning and model tweaks, I switched to discrete tokens, which eliminated this issue.
 
+</details>
+
 ---
 
-##### Early discrete transformer generation
+<details markdown="1">
+<summary>Click for early discrete transformer generation</summary>
 
 In this example, I seeded the model with some strokes from the dataset (in blue) and let it generate the remaining handwriting (in red) based on both strokes and text. Early on, the model produced fragmented and erratic strokes.
 
@@ -427,9 +454,12 @@ In this example, I seeded the model with some strokes from the dataset (in blue)
 
 As training progressed, I refined the text-stroke relationship, improving overall performance.
 
+</details>
+
 ---
 
-##### Pen lift failure due to imbalanced data
+<details markdown="1">
+<summary>Click for pen lift failure due to imbalanced data</summary>
 
 After some refinements on the above, the model still **failed to lift the pen** correctly.
 
@@ -444,9 +474,12 @@ After some refinements on the above, the model still **failed to lift the pen** 
 
 - I introduced **focal loss**, which increases the weight of rare events during training.
 
+</details>
+
 ---
 
-##### Lack of positional encoding in text
+<details markdown="1">
+<summary>Click for positional text encoding fix</summary>
 
 After the above, I finally got the model producing **reasonable letter-like scribbles**, but they were still jumbled and nonsensical, failing to follow the intended character sequence.
 
@@ -461,53 +494,48 @@ After the above, I finally got the model producing **reasonable letter-like scri
 
 - With this fix, the model could associate text positions with stroke positions, improving letter placement and structure.
 
+</details>
+
 ---
 
 ##### Improved handwriting generation
 
-This example demonstrates a **successful** text-to-handwriting generation.
+And finally... **successful** text-to-handwriting generation!
 
 ![Screenshot 4: final improved result](/assets/images/image4.png)
 
 ###### **What works here**
 
 - The generated handwriting follows the structure of the input text, properly aligning strokes with corresponding letters.
-- Pen lifts are correctly placed to make coherent spacing.
-- Consistent letter spacing and stroke continuity make the handwriting flow naturally, avoiding erratic movements from earlier models.
+- Pen lifts and spacing works.
+- The handwriting flows naturally vs. wild nonsensical movements from earlier models.
 
 ###### **Key improvements that led to this result**
 
-This level of convergence required many iterations of **model architecture refinement, hyperparameter tuning, and targeted loss reductions**:
+<details markdown="1">
+<summary>
+This level of convergence required many iterations of model architecture refinement, hyperparameter tuning, and targeted loss reductions.
+</summary>
 
 - **Model architecture improvements**: I reduced the number of Transformer layers and heads to **2–4 heads, 1–3 layers**, balancing expressiveness and convergence speed. Larger models took longer to learn without necessarily improving output quality.
 - **Hyperparameter tuning**: Learning rate schedules, warm-up steps, and batch size adjustments helped **stabilize training and prevent overfitting**, particularly by adjusting loss scaling on pen lift events.
 - **Loss function adjustments**: Introducing **focal loss** helped **pen lift balancing**, while ensuring **positional encodings** were properly applied to both stroke and text tokens helped cross-attention learn better alignments.
 - **Improved cross-attention layers**: Careful inspection of attention weights helped uncover bugs.
 
-These refinements steadily brought loss down.
+</details>
 
 ---
 
-## Conclusion and Key Takeaways
+## Conclusion: Big-Picture Takeaways
 
-1. **Sequential data**
+1. **Trajectory modeling**  
+   I used online handwriting as a small-scale example, but the same sequence-based ideas apply to **bigger robotic tasks**. Ongoing research increasingly relies on trajectory modeling for everything from gripper motions to mobile navigation.
 
-   The same concepts for handling pen lift and Δx, Δy in an autoregressive way can be applied to controlling a robot or simulating other continuous systems.
+2. **Foundation models and unified approaches**  
+   Even a few years ago, each robot component (vision, planning, action) was handled by a bespoke model. Now, **vision-language-action** pipelines show that tokenizing actions or strokes can use large, generalized models to handle more data and more tasks.
 
-2. **Text conditioning**
+3. **Simple and incremental debugging**  
+   Overfitting tiny subsets (1–5 examples) quickly exposes data or model issues. Plotting attention matrices or partial outputs helped me a ton, and this incremental debugging approach has always been invaluable for me as an applied researcher within robotics and deep learning.
 
-   Leveraging cross-attention and positional encodings allows the model to align characters with specific stroke segments, which can scale to conditioning on other modalities, like images or sensor data in robotics.
-
-3. **Transformers vs. RNNs**
-
-   Self-attention is great for long-range dependencies, large sequence lengths, and scaling up on training. Discretizing Δx and Δy further simplifies transformer training compared to an MDN approach, which can be unstable.
-
-4. **Debugging**
-
-   Overfitting small subsets (1, then 5 examples), verifying shapes, and visualizing attention were critical to catching bugs.
-
-5. **Robotics**
-
-   Scaling from 2D pen strokes to a 6D (or 7D) manipulator: replace "pen lift" with "gripper open," and (Δx, Δy) with joint movements.
-
-   I really liked the exercise of **online** handwriting vs. offline (static images of text). Robotics is fundamentally about continuous action sequences, and online data is essential for capturing that moment-to-moment motion, so I recommend trying this project out for yourself :)
+4. **Paths forward**  
+   Tokenizing continuous actions, conditioning on multiple modalities, and leveraging big models offer a route to **robotic manipulation** that unifies language, vision, and motion. Handwriting is small-scale, but the underlying principles transfer directly to complex systems.
