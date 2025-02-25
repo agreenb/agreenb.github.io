@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-02-24T19:04:43-05:00</updated><id>http://localhost:4000/feed.xml</id><entry><title type="html">Scribble Trajectories: Building an Online Handwriting Transformer</title><link href="http://localhost:4000/blog/handwriting/" rel="alternate" type="text/html" title="Scribble Trajectories: Building an Online Handwriting Transformer" /><published>2025-02-24T00:00:00-05:00</published><updated>2025-02-24T00:00:00-05:00</updated><id>http://localhost:4000/blog/handwriting</id><content type="html" xml:base="http://localhost:4000/blog/handwriting/"><![CDATA[<h2 id="introduction">Introduction</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-02-24T20:41:48-05:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">agreenb.github.io</title><entry><title type="html">Scribble Trajectories: Building an Online Handwriting Transformer</title><link href="http://localhost:4000/ml/robotics/transformers/2025/02/24/handwriting.html" rel="alternate" type="text/html" title="Scribble Trajectories: Building an Online Handwriting Transformer" /><published>2025-02-24T00:00:00-05:00</published><updated>2025-02-24T00:00:00-05:00</updated><id>http://localhost:4000/ml/robotics/transformers/2025/02/24/handwriting</id><content type="html" xml:base="http://localhost:4000/ml/robotics/transformers/2025/02/24/handwriting.html"><![CDATA[<h2 id="introduction">Introduction</h2>
 
 <p>I see online handwriting generation — predicting pen strokes in real time — as a fun project akin to <strong>robotic trajectory modeling</strong>. A robot typically follows a sequence of motor commands (like Δx and Δy) plus discrete events (like lifting a pen or opening a gripper). My goal was to feel extremely comfortable with multimodal transformer modeling for a real task that required building everything from scratch: data processing, model development, training pipelines, experimentation, visualization. Then, my next project will be mapping text or visual instructions to continuous robot movements.</p>
 
@@ -25,16 +25,16 @@
     <p><strong>RT-2</strong></p>
 
     <ul>
-      <li><em>What it is:</em> <a href="https://arxiv.org/pdf/2307.15818">RT-2</a> from Google DeepMind treats robot actions as text tokens. That way, it can take any vision-language model and fine-tune it into a vision-language-action model. During inference, the text tokens are decoded into continuous robot actions for closed-loop control.</li>
-      <li><em>Why it relates:</em> This approach views motor commands as another language, just like how strokes could become discrete tokens in a handwriting language.</li>
+      <li><strong>What it is:</strong> <a href="https://arxiv.org/pdf/2307.15818">RT-2</a> from Google DeepMind treats robot actions as text tokens. That way, it can take any vision-language model and fine-tune it into a vision-language-action model. During inference, the text tokens are decoded into continuous robot actions for closed-loop control.</li>
+      <li><strong>Why it relates:</strong> This approach views motor commands as another language, just like how strokes could become discrete tokens in a handwriting language.</li>
     </ul>
   </li>
   <li>
     <p><strong>RT-Trajectory</strong></p>
 
     <ul>
-      <li><em>What it is:</em> <a href="https://arxiv.org/pdf/2311.01977">RT-Trajectory</a>, also from DeepMind, uses trajectories as a way to specify robot tasks. It captures similarities between motions across different tasks, improving generalization beyond language-only or image-only approaches.</li>
-      <li><em>Why it relates:</em> Handwriting is already composed of 2D stroke movements, similar to these 2D trajectory sketches. By learning from 2D or 2.5D trajectory representations, RT-Trajectory shows how specifying a drawn path can yield robust policy generalization since it’s easier to interpolate or adapt new motions.</li>
+      <li><strong>What it is:</strong> <a href="https://arxiv.org/pdf/2311.01977">RT-Trajectory</a>, also from DeepMind, uses trajectories as a way to specify robot tasks. It captures similarities between motions across different tasks, improving generalization beyond language-only or image-only approaches.</li>
+      <li><strong>Why it relates:</strong> Handwriting is already composed of 2D stroke movements, similar to these 2D trajectory sketches. By learning from 2D or 2.5D trajectory representations, RT-Trajectory shows how specifying a drawn path can yield robust policy generalization since it’s easier to interpolate or adapt new motions.</li>
     </ul>
   </li>
   <li>

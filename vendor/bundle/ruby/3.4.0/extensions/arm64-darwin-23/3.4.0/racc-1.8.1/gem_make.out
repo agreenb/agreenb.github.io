@@ -1,0 +1,18 @@
+current directory: /Users/alexagreenberg/recurse/agreenb.github.io/vendor/bundle/ruby/3.4.0/gems/racc-1.8.1/ext/racc/cparse
+/opt/homebrew/opt/ruby/bin/ruby extconf.rb
+creating Makefile
+
+current directory: /Users/alexagreenberg/recurse/agreenb.github.io/vendor/bundle/ruby/3.4.0/gems/racc-1.8.1/ext/racc/cparse
+make DESTDIR\= sitearchdir\=./.gem.20250224-47861-41o1jt sitelibdir\=./.gem.20250224-47861-41o1jt clean
+
+current directory: /Users/alexagreenberg/recurse/agreenb.github.io/vendor/bundle/ruby/3.4.0/gems/racc-1.8.1/ext/racc/cparse
+make DESTDIR\= sitearchdir\=./.gem.20250224-47861-41o1jt sitelibdir\=./.gem.20250224-47861-41o1jt
+compiling cparse.c
+linking shared-object racc/cparse.bundle
+
+current directory: /Users/alexagreenberg/recurse/agreenb.github.io/vendor/bundle/ruby/3.4.0/gems/racc-1.8.1/ext/racc/cparse
+make DESTDIR\= sitearchdir\=./.gem.20250224-47861-41o1jt sitelibdir\=./.gem.20250224-47861-41o1jt install
+/usr/bin/install -c -m 0755 cparse.bundle ./.gem.20250224-47861-41o1jt/racc
+
+current directory: /Users/alexagreenberg/recurse/agreenb.github.io/vendor/bundle/ruby/3.4.0/gems/racc-1.8.1/ext/racc/cparse
+make DESTDIR\= sitearchdir\=./.gem.20250224-47861-41o1jt sitelibdir\=./.gem.20250224-47861-41o1jt clean

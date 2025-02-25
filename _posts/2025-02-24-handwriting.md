@@ -27,13 +27,13 @@ I'll go over:
 
 1. **RT-2**
 
-   - _What it is:_ [RT-2](https://arxiv.org/pdf/2307.15818) from Google DeepMind treats robot actions as text tokens. That way, it can take any vision-language model and fine-tune it into a vision-language-action model. During inference, the text tokens are decoded into continuous robot actions for closed-loop control.
-   - _Why it relates:_ This approach views motor commands as another language, just like how strokes could become discrete tokens in a handwriting language.
+   - **What it is:** [RT-2](https://arxiv.org/pdf/2307.15818) from Google DeepMind treats robot actions as text tokens. That way, it can take any vision-language model and fine-tune it into a vision-language-action model. During inference, the text tokens are decoded into continuous robot actions for closed-loop control.
+   - **Why it relates:** This approach views motor commands as another language, just like how strokes could become discrete tokens in a handwriting language.
 
 2. **RT-Trajectory**
 
-   - _What it is:_ [RT-Trajectory](https://arxiv.org/pdf/2311.01977), also from DeepMind, uses trajectories as a way to specify robot tasks. It captures similarities between motions across different tasks, improving generalization beyond language-only or image-only approaches.
-   - _Why it relates:_ Handwriting is already composed of 2D stroke movements, similar to these 2D trajectory sketches. By learning from 2D or 2.5D trajectory representations, RT-Trajectory shows how specifying a drawn path can yield robust policy generalization since it's easier to interpolate or adapt new motions.
+   - **What it is:** [RT-Trajectory](https://arxiv.org/pdf/2311.01977), also from DeepMind, uses trajectories as a way to specify robot tasks. It captures similarities between motions across different tasks, improving generalization beyond language-only or image-only approaches.
+   - **Why it relates:** Handwriting is already composed of 2D stroke movements, similar to these 2D trajectory sketches. By learning from 2D or 2.5D trajectory representations, RT-Trajectory shows how specifying a drawn path can yield robust policy generalization since it's easier to interpolate or adapt new motions.
 
 3. **Pi-0**
    - **Why it relates:** [Pi-0](https://arxiv.org/pdf/2410.24164v1), from Physical Intelligence, integrates vision, language, and proprioception into a single embedding space. It uses action chunking and flow matching to model complex continuous actions at high frequencies up to 50 Hz.

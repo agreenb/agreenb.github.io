@@ -3,8 +3,8 @@ theme: minima
 
 markdown: kramdown
 highlighter: rouge
+future: true
 
-permalink: /blog/:title/
 paginate: 5
 
 plugins:
@@ -12,4 +12,8 @@ plugins:
   - jekyll-seo-tag
 
 exclude:
-  - etc/
+  - vendor
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - etc
