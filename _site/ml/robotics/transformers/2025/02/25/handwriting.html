@@ -69,8 +69,13 @@
 
     <div class="post-content"><h2 id="introduction">Introduction</h2>
 
-<p>I took on online handwriting generation — predicting pen strokes in real time — as a fun project that translates naturally <strong>robotic trajectory modeling</strong>. A robot follows continuous motor commands (e.g. Δx and Δy) plus discrete events (e.g. gripper opens). My primary goal was to gain hands-on experience building a <strong>multimodal transformer</strong> end to end: from tokenizing data, to training, to visualizing results. <!--more-->
-My larger goal will be to bring these ideas into a large foundation model that can produce continuous movements, whether handwriting strokes or robot actions.</p>
+<p>At the end of last year, I spent <strong>months at Recurse Center</strong> diving deep into theory and state-of-the-art research (EBMs, VAEs, transformers, diffusion models, RL, etc) while revisiting the math-heavy fundamentals of machine learning. Now, I’m back to building.</p>
+
+<p>I found <strong>online handwriting generation</strong> — predicting pen strokes in real time — to be a great exploration for <strong>robotic trajectory modeling</strong>. A robot follows continuous motor commands (e.g. Δx and Δy) plus discrete events (e.g. gripper opens), just like handwriting sequences combine fine-grained movement (in a 2D trajectory) with pen lifts. And namely, I already had access to a great handwriting dataset and could train within a reasonable time (though I did upgrade to Colab Pro+).</p>
+
+<p>My primary goal was to gain hands-on experience building a <strong>multimodal transformer</strong> end to end: from tokenizing data to training and visualizing results. My broader goal is to scale these ideas into <strong>large foundation models</strong> that can produce continuous movements, like robotic actions.</p>
+
+<!--more-->
 
 <p>I’ll go over:</p>
 
@@ -86,8 +91,6 @@ My larger goal will be to bring these ideas into a large foundation model that c
 <hr />
 
 <h2 id="where-robotics-fits-in">Where robotics fits in</h2>
-
-<p><strong>Online handwriting</strong> is essentially a 2D trajectory plus a “lift pen” signal. A <strong>robot manipulator</strong> in 3D or 6D space similarly has continuous joint positions and a “gripper open/closed” signal. Both are sequential movement tasks with discrete events, and I thought about modeling my data in the way that a robot model might tokenize joint and gripper signals.</p>
 
 <h5 id="connecting-to-sota-robotics-transformers">Connecting to SOTA robotics transformers</h5>
 
@@ -163,7 +166,7 @@ My larger goal will be to bring these ideas into a large foundation model that c
   </li>
 </ol>
 
-<p>These approaches cover vision-language data, 2D trajectories, and a separation of coarse and fine control, and highlight how <strong>trajectory-based</strong> representation can better use foundation models for precise motion policies. Online handwriting is certainly a smaller domain and scope, but relies on the same fundamental transformer approach.</p>
+<p>These approaches cover vision-language data, 2D trajectories, and a separation of coarse and fine control, and highlight how <strong>trajectory-based</strong> representation can better use foundation models for precise motion policies. Online handwriting is essentially a 2D trajectory plus a “lift pen” signal, so I thought about <strong>modeling my data in the way that a robot model might tokenize joint and gripper signals</strong>.</p>
 
 <hr />
 

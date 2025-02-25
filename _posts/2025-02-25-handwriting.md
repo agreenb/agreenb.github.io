@@ -7,8 +7,13 @@ categories: [ml, robotics, transformers]
 
 ## Introduction
 
-I took on online handwriting generation — predicting pen strokes in real time — as a fun project that translates naturally **robotic trajectory modeling**. A robot follows continuous motor commands (e.g. Δx and Δy) plus discrete events (e.g. gripper opens). My primary goal was to gain hands-on experience building a **multimodal transformer** end to end: from tokenizing data, to training, to visualizing results. <!--more-->
-My larger goal will be to bring these ideas into a large foundation model that can produce continuous movements, whether handwriting strokes or robot actions.
+At the end of last year, I spent **months at Recurse Center** diving deep into theory and state-of-the-art research (EBMs, VAEs, transformers, diffusion models, RL, etc) while revisiting the math-heavy fundamentals of machine learning. Now, I'm back to building.
+
+I found **online handwriting generation** — predicting pen strokes in real time — to be a great exploration for **robotic trajectory modeling**. A robot follows continuous motor commands (e.g. Δx and Δy) plus discrete events (e.g. gripper opens), just like handwriting sequences combine fine-grained movement (in a 2D trajectory) with pen lifts. And namely, I already had access to a great handwriting dataset and could train within a reasonable time (though I did upgrade to Colab Pro+).
+
+My primary goal was to gain hands-on experience building a **multimodal transformer** end to end: from tokenizing data to training and visualizing results. My broader goal is to scale these ideas into **large foundation models** that can produce continuous movements, like robotic actions.
+
+<!--more-->
 
 I'll go over:
 
@@ -22,8 +27,6 @@ I'll go over:
 ---
 
 ## Where robotics fits in
-
-**Online handwriting** is essentially a 2D trajectory plus a "lift pen" signal. A **robot manipulator** in 3D or 6D space similarly has continuous joint positions and a "gripper open/closed" signal. Both are sequential movement tasks with discrete events, and I thought about modeling my data in the way that a robot model might tokenize joint and gripper signals.
 
 ##### Connecting to SOTA robotics transformers
 
@@ -66,7 +69,7 @@ I'll go over:
 
     - **Why it relates:** HAMSTER focuses on robotic manipulation, but 2D trajectories apply equally to handwriting. We can find endless images of text online but lack stroke-by-stroke datasets. If we just approximate or extract 2D strokes from those images, a large VLM could propose coarse strokes that a smaller policy refines into Δx, Δy commands.
 
-These approaches cover vision-language data, 2D trajectories, and a separation of coarse and fine control, and highlight how **trajectory-based** representation can better use foundation models for precise motion policies. Online handwriting is certainly a smaller domain and scope, but relies on the same fundamental transformer approach.
+These approaches cover vision-language data, 2D trajectories, and a separation of coarse and fine control, and highlight how **trajectory-based** representation can better use foundation models for precise motion policies. Online handwriting is essentially a 2D trajectory plus a "lift pen" signal, so I thought about **modeling my data in the way that a robot model might tokenize joint and gripper signals**.
 
 ---
 
