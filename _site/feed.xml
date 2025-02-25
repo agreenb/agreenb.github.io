@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-02-24T22:39:13-05:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">agreenb.github.io</title><entry><title type="html">Scribble Trajectories: Building an Online Handwriting Transformer</title><link href="http://localhost:4000/ml/robotics/transformers/2025/02/24/handwriting.html" rel="alternate" type="text/html" title="Scribble Trajectories: Building an Online Handwriting Transformer" /><published>2025-02-24T00:00:00-05:00</published><updated>2025-02-24T00:00:00-05:00</updated><id>http://localhost:4000/ml/robotics/transformers/2025/02/24/handwriting</id><content type="html" xml:base="http://localhost:4000/ml/robotics/transformers/2025/02/24/handwriting.html"><![CDATA[<h2 id="introduction">Introduction</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-02-25T11:30:38-05:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">agreenb.github.io</title><entry><title type="html">Scribble Trajectories: Building an Online Handwriting Transformer</title><link href="http://localhost:4000/ml/robotics/transformers/2025/02/24/handwriting.html" rel="alternate" type="text/html" title="Scribble Trajectories: Building an Online Handwriting Transformer" /><published>2025-02-24T00:00:00-05:00</published><updated>2025-02-24T00:00:00-05:00</updated><id>http://localhost:4000/ml/robotics/transformers/2025/02/24/handwriting</id><content type="html" xml:base="http://localhost:4000/ml/robotics/transformers/2025/02/24/handwriting.html"><![CDATA[<h2 id="introduction">Introduction</h2>
 
 <p>I see online handwriting generation — predicting pen strokes in real time — as a fun project akin to <strong>robotic trajectory modeling</strong>. A robot typically follows a sequence of motor commands (like Δx and Δy) plus discrete events (like lifting a pen or opening a gripper). My goal was to feel extremely comfortable with multimodal transformer modeling for a real task that required building everything from scratch: data processing, model development, training pipelines, experimentation, visualization. <!--more-->
 I aim , my next project will be to map text or visual instructions to continuous robot movements.</p>
@@ -65,27 +65,6 @@ I aim , my next project will be to map text or visual instructions to continuous
   <li><strong>pen lift</strong> ∈ {0, 1}: is the pen on paper or lifted?</li>
 </ul>
 
-<p><strong>Discrete binning</strong> of Δx and Δy turned these continuous deltas into discrete tokens. I used a <strong>hybrid binning</strong> strategy that processed Δx and Δy into 24 bins each, removing the need to handle raw floats in a transformer.</p>
-
-<ul>
-  <li>
-    <p><strong>Fine resolution near zero</strong><br />
-Most strokes are small movements around Δx, Δy. By using uniform bins around zero, the model can distinguish subtle pen movements.</p>
-  </li>
-  <li>
-    <p><strong>Log-spaced tails</strong><br />
-Large movements are less frequent but can be significant (fast scribbles, big jumps). Logarithmic spacing ensures that minimal bins are assigned for these rare events, while still capturing them.</p>
-  </li>
-  <li>
-    <p><strong>Adaptive refinement</strong><br />
-I refined the bins by merging any with low data counts and adding extra bins where data was densest, maintaining a well-spaced distribution.</p>
-  </li>
-  <li>
-    <p><strong>Easier transformer training</strong><br />
-Once Δx and Δy were mapped to discrete tokens, it was straightforward for the model to classify the next token, like in language modeling. This avoided the complexities of regressing floating-point values and made training more stable, especially with a standard cross-entropy loss.</p>
-  </li>
-</ul>
-
 <h5 id="2-gmm-approach">2) GMM approach</h5>
 
 <p>Alex Graves’ <a href="https://arxiv.org/pdf/1308.0850">classic handwriting approach</a> uses an RNN and mixture density network (MDN) to model continuous stroke distributions.</p>
@@ -131,7 +110,41 @@ Once Δx and Δy were mapped to discrete tokens, it was straightforward for the 
 
 <h5 id="3-unconditional-generation-with-a-transformer">3) Unconditional generation with a transformer</h5>
 
-<p>I first tested a <strong>transformer</strong> that generates new strokes based on previous strokes:</p>
+<p>First, I used <strong>discrete binning</strong> of Δx and Δy to turn continuous deltas into discrete tokens.
+The original distribution of Δx and Δy values shows how most stroke movements are small and clustered around zero, while larger movements are significantly less frequent.</p>
+
+<p><img src="/assets/images/image6.png" alt="Screenshot 6: Raw Δx, Δy Distribution" /></p>
+
+<p>I implemented <strong>adaptive binning</strong>, which processed Δx and Δy into 24 bins each, allowing the transformer to autoregressively predict the next best token.</p>
+
+<p>The binning strategy:</p>
+
+<ul>
+  <li>
+    <p><strong>Fine resolution near zero</strong><br />
+Most strokes are small movements around Δx, Δy. By using uniform bins around zero, where most handwriting variations occur, the model can distinguish subtle pen movements.</p>
+  </li>
+  <li>
+    <p><strong>Log-spaced tails</strong><br />
+Large movements are less frequent but can be significant (fast scribbles, big jumps). Logarithmic spacing ensures that minimal bins are assigned for these rare events while still capturing them.</p>
+  </li>
+  <li>
+    <p><strong>Adaptive refinement</strong><br />
+Merge any bins with low data counts and adding extra bins where data was densest, maintaining a well-spaced distribution.</p>
+  </li>
+</ul>
+
+<p>Computed bin edges after adaptive binning:</p>
+
+<p><img src="/assets/images/image7.png" alt="Screenshot 7: Adaptive Binning Bin Edges" /></p>
+
+<p>You can see that Δx and Δy are evenly distributed in their token classes rather than being concentrated in a few highly populated ones. Unlike uniform binning, which would have wasted resolution on rare large movements, small pen adjustments and larger strokes are properly represented.</p>
+
+<p><img src="/assets/images/image8.png" alt="Screenshot 8: Adaptive Binning Applied to Δx, Δy" /></p>
+
+<p>Now, it’s more straightforward for the model to classify the next token with standard cross-entropy loss, rather than needing to regress to floating-point values.</p>
+
+<h6 id="i-first-tested-a-transformer-that-generates-new-strokes-based-on-previous-strokes">I first tested a <strong>transformer</strong> that generates new strokes based on previous strokes:</h6>
 
 <ul>
   <li>
@@ -438,12 +451,12 @@ Expand from 2D pen strokes to 3D or 6D manipulator movements. The model’s text
 
 <ol>
   <li>
-    <p><strong>Sequential Data</strong></p>
+    <p><strong>Sequential data</strong></p>
 
     <p>The same concepts for handling pen lift and Δx, Δy in an autoregressive way can be applied to controlling a robot or simulating other continuous systems.</p>
   </li>
   <li>
-    <p><strong>Text Conditioning</strong></p>
+    <p><strong>Text conditioning</strong></p>
 
     <p>Leveraging cross-attention and positional encodings allows the model to align characters with specific stroke segments, which can scale to conditioning on other modalities, like images or sensor data in robotics.</p>
   </li>

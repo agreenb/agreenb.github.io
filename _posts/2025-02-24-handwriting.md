@@ -56,20 +56,6 @@ I started with a stroke dataset where each timestep has three values:
 - **Δy**: movement in y
 - **pen lift** ∈ {0, 1}: is the pen on paper or lifted?
 
-**Discrete binning** of Δx and Δy turned these continuous deltas into discrete tokens. I used a **hybrid binning** strategy that processed Δx and Δy into 24 bins each, removing the need to handle raw floats in a transformer.
-
-- **Fine resolution near zero**  
-  Most strokes are small movements around Δx, Δy. By using uniform bins around zero, the model can distinguish subtle pen movements.
-
-- **Log-spaced tails**  
-  Large movements are less frequent but can be significant (fast scribbles, big jumps). Logarithmic spacing ensures that minimal bins are assigned for these rare events, while still capturing them.
-
-- **Adaptive refinement**  
-  I refined the bins by merging any with low data counts and adding extra bins where data was densest, maintaining a well-spaced distribution.
-
-- **Easier transformer training**  
-  Once Δx and Δy were mapped to discrete tokens, it was straightforward for the model to classify the next token, like in language modeling. This avoided the complexities of regressing floating-point values and made training more stable, especially with a standard cross-entropy loss.
-
 ##### 2) GMM approach
 
 Alex Graves' [classic handwriting approach](https://arxiv.org/pdf/1308.0850) uses an RNN and mixture density network (MDN) to model continuous stroke distributions.
@@ -100,7 +86,35 @@ Alex Graves' [classic handwriting approach](https://arxiv.org/pdf/1308.0850) use
 
 ##### 3) Unconditional generation with a transformer
 
-I first tested a **transformer** that generates new strokes based on previous strokes:
+First, I used **discrete binning** of Δx and Δy to turn continuous deltas into discrete tokens.
+The original distribution of Δx and Δy values shows how most stroke movements are small and clustered around zero, while larger movements are significantly less frequent.
+
+![Screenshot 6: Raw Δx, Δy Distribution](/assets/images/image6.png)
+
+I implemented **adaptive binning**, which processed Δx and Δy into 24 bins each, allowing the transformer to autoregressively predict the next best token.
+
+The binning strategy:
+
+- **Fine resolution near zero**  
+  Most strokes are small movements around Δx, Δy. By using uniform bins around zero, where most handwriting variations occur, the model can distinguish subtle pen movements.
+
+- **Log-spaced tails**  
+  Large movements are less frequent but can be significant (fast scribbles, big jumps). Logarithmic spacing ensures that minimal bins are assigned for these rare events while still capturing them.
+
+- **Adaptive refinement**  
+  Merge any bins with low data counts and adding extra bins where data was densest, maintaining a well-spaced distribution.
+
+Computed bin edges after adaptive binning:
+
+![Screenshot 7: Adaptive Binning Bin Edges](/assets/images/image7.png)
+
+You can see that Δx and Δy are evenly distributed in their token classes rather than being concentrated in a few highly populated ones. Unlike uniform binning, which would have wasted resolution on rare large movements, small pen adjustments and larger strokes are properly represented.
+
+![Screenshot 8: Adaptive Binning Applied to Δx, Δy](/assets/images/image8.png)
+
+Now, it's more straightforward for the model to classify the next token with standard cross-entropy loss, rather than needing to regress to floating-point values.
+
+###### I first tested a **transformer** that generates new strokes based on previous strokes:
 
 - **Self-attention on stroke tokens**  
   The transformer processes each token (Δx, Δy, pen lift), learning how strokes typically flow over time.
