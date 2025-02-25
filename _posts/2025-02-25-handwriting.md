@@ -1,19 +1,20 @@
 ---
 layout: post
 title: "Scribble Trajectories: Building an Online Handwriting Transformer"
-date: 2025-02-24
+date: 2025-02-25
 categories: [ml, robotics, transformers]
 ---
 
 ## Introduction
 
-I see online handwriting generation — predicting pen strokes in real time — as a fun project akin to **robotic trajectory modeling**. A robot typically follows a sequence of motor commands (like Δx and Δy) plus discrete events (like lifting a pen or opening a gripper). My goal was to feel extremely comfortable with multimodal transformer modeling for a real task that required building everything from scratch: data processing, model development, training pipelines, experimentation, visualization. <!--more-->
-I aim , my next project will be to map text or visual instructions to continuous robot movements.
+I see online handwriting generation — predicting pen strokes in real time — as a fun project that relates to **robotic trajectory modeling**. A robot typically follows a sequence of motor commands (like Δx and Δy) plus discrete events (like lifting a pen or opening a gripper). My goal was to feel extremely comfortable with building a multimodal transformer for a real task, with everything from scratch: data processing, model development, training pipelines, experimentation, visualization. <!--more-->
+My larger goal is to unify these ideas into a more general foundation model that can handle text or visual inputs and produce continuous movements, whether handwriting strokes or robot actions.
 
 I'll go over:
 
 - My **data representation** with Δx, Δy, pen lift.
 - Why discrete **transformers** improved over the **RNN + GMM** approach for me.
+- Moving to a multitask, multimodal model.
 - Debugging tips: overfitting on small dataset subsets, cross-attention visualization, and more.
 - How this approach ties into SOTA robotic transformers.
 - Final results and next steps, including bridging to massive **foundation models**.
@@ -22,25 +23,50 @@ I'll go over:
 
 ## Where Robotics Fits In
 
-**Online handwriting** is essentially a 2D trajectory with an event signal (pen lift). A **robot manipulator** in 3D or 6D space can be described similarly: each step updates joint positions, and a discrete signal says "gripper open" or "gripper closed."
+**Online handwriting** is essentially a 2D trajectory plus a "lift pen" signal. A **robot manipulator** in 3D or 6D space similarly has continuous joint positions and a "gripper open/closed" signal. Both are sequential movement tasks with discrete events, and I thought about modeling my data in the way that a robot model might tokenize joint and gripper signals.
 
 ##### Connecting to SOTA robotics transformers
 
-1. **RT-2**
+1.  **RT-2**
 
-   - **What it is:** [RT-2](https://arxiv.org/pdf/2307.15818) from Google DeepMind treats robot actions as text tokens. That way, it can take any vision-language model and fine-tune it into a vision-language-action model. During inference, the text tokens are decoded into continuous robot actions for closed-loop control.
-   - **Why it relates:** This approach views motor commands as another language, just like how strokes could become discrete tokens in a handwriting language.
+    - **What it is:** [RT-2](https://arxiv.org/pdf/2307.15818) from Google DeepMind treats robot actions as text tokens. That way, it can take any vision-language model and fine-tune it into a vision-language-action model. During inference, the text tokens are decoded into continuous robot actions for closed-loop control.
+    - **Why it relates:** This approach views motor commands as another language, just like how strokes could become discrete tokens in a handwriting language.
 
-2. **RT-Trajectory**
+2.  **RT-Trajectory**
 
-   - **What it is:** [RT-Trajectory](https://arxiv.org/pdf/2311.01977), also from DeepMind, uses trajectories as a way to specify robot tasks. It captures similarities between motions across different tasks, improving generalization beyond language-only or image-only approaches.
-   - **Why it relates:** Handwriting is already composed of 2D stroke movements, similar to these 2D trajectory sketches. By learning from 2D or 2.5D trajectory representations, RT-Trajectory shows how specifying a drawn path can yield robust policy generalization since it's easier to interpolate or adapt new motions.
+    - **What it is:** [RT-Trajectory](https://arxiv.org/pdf/2311.01977), also from DeepMind, uses trajectories as a way to specify robot tasks. It captures similarities between motions across different tasks, improving generalization beyond language-only or image-only approaches.
+    - **Why it relates:** Handwriting is already composed of 2D stroke movements, similar to these 2D trajectory sketches. By learning from 2D or 2.5D trajectory representations, RT-Trajectory shows how specifying a drawn path can yield robust policy generalization since it's easier to interpolate or adapt new motions.
 
-3. **Pi-0**
-   - **Why it relates:** [Pi-0](https://arxiv.org/pdf/2410.24164v1), from Physical Intelligence, integrates vision, language, and proprioception into a single embedding space. It uses action chunking and flow matching to model complex continuous actions at high frequencies up to 50 Hz.
-   - **Why it relates:** Handwriting generation deals with trajectories at lower frequencies, but the principle is the same: refine trajectory generation in a globally coherent way.
+3.  **Pi-0**
 
-**Online handwriting** is a smaller domain that uses similar transformer blocks you'd find above, but at a lower dimension.
+    - **What it is:** [Pi-0](https://arxiv.org/pdf/2410.24164v1), from Physical Intelligence, integrates vision, language, and proprioception into a single embedding space. It uses action chunking and flow matching to model complex continuous actions at high frequencies up to 50 Hz.
+    - **Why it relates:** Handwriting generation deals with trajectories at lower frequencies, but the principle is the same: refine trajectory generation in a globally coherent way.
+
+4.  **HAMSTER**
+
+    - **What it is:** [HAMSTER](https://hamster-robot.github.io/paper.pdf) is a **hierarchical vision-language-action** approach from NVIDIA/UW/USC that came out after the first draft of this blog post. It trains a large VLM to produce a coarse 2D path, then hands that path off to a smaller, 3D-aware policy for precise manipulation. Super relevant, so I'll dig into this one more!
+
+    - **How trajectories help**:
+
+      - Learning in robotics often struggles because of:
+
+        - **Expensive on-robot data**: Collecting huge labeled image-action datasets is time-consuming and costly.
+        - **Overly specialized policies**: A monolithic vision-action model tends not to generalize well to new tasks or embodiments.
+        - **Inference frequency constraints**: Large VLMs can't always run at the frequency (e.g. 50Hz) needed for fine, real-time control.<br /><br />
+
+      - HAMSTER solves this by predicting a 2D path in the camera image, keeping the VLM **embodiment agnostic**. It doesn't need any details about the robot shape or degrees of freedom: just marks where to move in 2D space. A smaller, specialized policy then converts that path into precise 3D actions for whatever robot is actually used.
+
+    - **Leveraging off-domain data**:
+
+      - Because HAMSTER only needs 2D trajectories rather than explicit robot actions, it can fine-tune on cheaper data sources (e.g. action-free videos or physics simulations) using:
+
+        - Point tracking: track a person's hand or object in a video
+        - Hand-sketching: a human sketches the path directly on an image
+        - Proprioceptive projection: known joint positions are projected onto a 2D camera view <br /><br />
+
+    - **Why it relates:** HAMSTER focuses on robotic manipulation, but 2D trajectories apply equally to handwriting. We can find endless images of text online but lack stroke-by-stroke datasets. If we just approximate or extract 2D strokes from those images, a large VLM could propose coarse strokes that a smaller policy refines into Δx, Δy commands.
+
+These approaches cover vision-language data, 2D trajectories, and a separation of coarse and fine control, and highlight how **trajectory-based** representation can better use foundation models for precise motion policies. Online handwriting is certainly a smaller domain and scope, but relies on the same fundamental transformer approach.
 
 ---
 
@@ -84,7 +110,7 @@ Alex Graves' [classic handwriting approach](https://arxiv.org/pdf/1308.0850) use
    - **No continuous sampling quirks:** Inference just relies on picking the next token from a softmax distribution.
    - **Easier debugging:** Digging into stroke tokens or mispredicted pen-lift is way easier than debugging multi-dimensional Gaussians.
 
-##### 3) Unconditional generation with a transformer
+##### 3) Tokenizing handwriting strokes
 
 First, I used **discrete binning** of Δx and Δy to turn continuous deltas into discrete tokens.
 The original distribution of Δx and Δy values shows how most stroke movements are small and clustered around zero, while larger movements are significantly less frequent.
@@ -108,21 +134,80 @@ Computed bin edges after adaptive binning:
 
 ![Screenshot 7: Adaptive Binning Bin Edges](/assets/images/image7.png)
 
-You can see that Δx and Δy are evenly distributed in their token classes rather than being concentrated in a few highly populated ones. Unlike uniform binning, which would have wasted resolution on rare large movements, small pen adjustments and larger strokes are properly represented.
+You can see that Δx and Δy are evenly distributed in their token classes, rather than being concentrated in a few highly populated ones. Small pen adjustments and larger strokes are properly represented, whereas uniform binning would have wasted resolution on rare big moves.
 
 ![Screenshot 8: Adaptive Binning Applied to Δx, Δy](/assets/images/image8.png)
 
-Now, it's more straightforward for the model to classify the next token with standard cross-entropy loss, rather than needing to regress to floating-point values.
+Great! Now the model can just classify the next token with standard cross-entropy loss, rather than needing to regress to floating-point values.
 
-###### I first tested a **transformer** that generates new strokes based on previous strokes:
+###### Tokenizer
 
-- **Self-attention on stroke tokens**  
+At first, I used [tiktoken](https://github.com/openai/tiktoken), the tokenizer for GPT-4 with a 100K subword vocabulary. When my model wouldn't converge, the first "duh" moment was that it was obviously overkill for my simple dataset and use case. I wrote a custom ASCII tokenizer of just 96 characters.
+
+```python
+class CharTokenizer:
+    def __init__(self):
+        self.pad_token = "[PAD]"
+        self.unk_token = "[UNK]"
+
+        ascii_punct = string.punctuation
+        chars = (
+            list(string.ascii_lowercase)
+            + list(string.ascii_uppercase)
+            + list(string.digits)
+            + list(ascii_punct)
+            + [" "]
+        )
+
+        self.itos = [self.pad_token, self.unk_token] + chars
+        self.stoi = {ch: i for i, ch in enumerate(self.itos)}
+
+        self.vocab_size = len(self.itos)
+
+    def _preprocess_text(self, text: str) -> str:
+        text = (
+            text.replace("’", "'")
+                .replace("‘", "'")
+                .replace("“", '"')
+                .replace("”", '"')
+                .replace("—", "-")
+                .replace("–", "-")
+        )
+        text = re.sub(r"[^\x20-\x7E]", "", text)
+
+        return text
+
+    def encode(self, text: str, max_length: int = 50) -> list:
+        text = self._preprocess_text(text)
+
+        tokens = [
+            self.stoi[ch] if ch in self.stoi else self.stoi[self.unk_token]
+            for ch in text
+        ]
+
+        # Truncate if too long
+        tokens = tokens[:max_length]
+        # Pad if too short
+        tokens += [self.stoi[self.pad_token]] * (max_length - len(tokens))
+
+        return tokens
+
+    def decode(self, token_ids: list) -> str:
+        return "".join(
+            self.itos[idx] if 0 <= idx < len(self.itos) else self.unk_token
+            for idx in token_ids
+        )
+```
+
+##### 4) Unconditional generation with a transformer
+
+I first tested a transformer that generated new strokes based on previous strokes:
+
+- **Self-attention on stroke tokens**
   The transformer processes each token (Δx, Δy, pen lift), learning how strokes typically flow over time.
-
-- **Scribble-like outputs**  
+- **Scribble-like outputs**
   With no text to guide it, the model produces free-form strokes. These can look like letters or loops, confirming it can generate coherent movement patterns before adding text conditioning.
-
-- **Advantages over RNN**  
+- **Advantages over RNN**
   Transformers better capture long-range dependencies through self-attention, and discrete token classification avoids the complexities of continuous sampling or GMM instability.
 
 ---
@@ -194,13 +279,58 @@ class TransformerStrokeModel(nn.Module):
 
 #### Stage 4: Architecture tweaks
 
-#### Less is more
+##### Simplify
 
-- I first tried 8–12 heads and 6–8 layers, but it was overkill that slowed down training because of wasted model capacity on limited data. 2–4 heads and 1–3 layers gave quicker convergence and easier debugging.
+I first tried 8–12 heads and 6–8 layers, but it was overkill that slowed down training because of wasted model capacity on limited data. 2–4 heads and 1–3 layers gave quicker convergence and easier debugging.
 
 ##### Visualizing attention weights in PyTorch
 
-- While debugging, a huge interpretability boost was subclassing `nn.TransformerDecoderLayer` to return cross-attention weights. Plotting them as heatmaps (stroke_tokens × text_tokens) let me check alignment and quickly debug a bunch of situations (e.g. text completely ignored, positional encodings ignored, everything fixated on the first letter).
+While debugging, a huge interpretability boost was subclassing `nn.TransformerDecoderLayer` to return cross-attention weights. Plotting them as heatmaps (stroke_tokens × text_tokens) let me check alignment and quickly debug a bunch of situations (e.g. text completely ignored, positional encodings ignored, everything fixated on the first letter).
+
+```python
+class CustomDecoderLayer(nn.TransformerDecoderLayer):
+    def __init__(self, d_model, nhead, dim_feedforward=1024):
+        super().__init__(d_model, nhead, dim_feedforward=dim_feedforward, dropout=DROPOUT, batch_first=True)
+
+    def forward(
+        self,
+        tgt,
+        memory,
+        tgt_mask=None,
+        memory_mask=None,
+        tgt_key_padding_mask=None,
+        memory_key_padding_mask=None,
+        return_attn_weights=False
+    ):
+        x, self_attn_weights = self.self_attn(
+            tgt, tgt, tgt,
+            attn_mask=tgt_mask,
+            key_padding_mask=tgt_key_padding_mask,
+            need_weights=return_attn_weights
+        )
+        tgt = tgt + self.dropout1(x)
+        tgt = self.norm1(tgt)
+
+        x, cross_attn_weights = self.multihead_attn(
+            tgt, memory, memory,
+            attn_mask=memory_mask,
+            key_padding_mask=memory_key_padding_mask,
+            need_weights=return_attn_weights
+        )
+        tgt = tgt + self.dropout2(x)
+        tgt = self.norm2(tgt)
+
+        x = self.linear2(self.dropout(self.activation(self.linear1(tgt))))
+        tgt = tgt + self.dropout3(x)
+        tgt = self.norm3(tgt)
+
+        if return_attn_weights:
+            return tgt, self_attn_weights, cross_attn_weights
+        else:
+            return tgt, None, None
+```
+
+![Screenshot: cross-attention weight visualization](/assets/images/image9.png)
 
 ---
 
@@ -276,6 +406,8 @@ I spent a lot of time visualizing:
 - A shift to **discrete tokenization** was necessary to give the transformer better control over individual stroke outputs, avoiding the need for unstable mixture sampling.
 
 After trying a lot of hyperparameter tuning and model tweaks, I switched to discrete tokens, which eliminated this issue.
+
+---
 
 ##### Early discrete transformer generation
 

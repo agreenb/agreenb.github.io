@@ -1,13 +1,14 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-02-25T11:30:38-05:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">agreenb.github.io</title><entry><title type="html">Scribble Trajectories: Building an Online Handwriting Transformer</title><link href="http://localhost:4000/ml/robotics/transformers/2025/02/24/handwriting.html" rel="alternate" type="text/html" title="Scribble Trajectories: Building an Online Handwriting Transformer" /><published>2025-02-24T00:00:00-05:00</published><updated>2025-02-24T00:00:00-05:00</updated><id>http://localhost:4000/ml/robotics/transformers/2025/02/24/handwriting</id><content type="html" xml:base="http://localhost:4000/ml/robotics/transformers/2025/02/24/handwriting.html"><![CDATA[<h2 id="introduction">Introduction</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-02-25T16:26:30-05:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">agreenb.github.io</title><entry><title type="html">Scribble Trajectories: Building an Online Handwriting Transformer</title><link href="http://localhost:4000/ml/robotics/transformers/2025/02/25/handwriting.html" rel="alternate" type="text/html" title="Scribble Trajectories: Building an Online Handwriting Transformer" /><published>2025-02-25T00:00:00-05:00</published><updated>2025-02-25T00:00:00-05:00</updated><id>http://localhost:4000/ml/robotics/transformers/2025/02/25/handwriting</id><content type="html" xml:base="http://localhost:4000/ml/robotics/transformers/2025/02/25/handwriting.html"><![CDATA[<h2 id="introduction">Introduction</h2>
 
-<p>I see online handwriting generation — predicting pen strokes in real time — as a fun project akin to <strong>robotic trajectory modeling</strong>. A robot typically follows a sequence of motor commands (like Δx and Δy) plus discrete events (like lifting a pen or opening a gripper). My goal was to feel extremely comfortable with multimodal transformer modeling for a real task that required building everything from scratch: data processing, model development, training pipelines, experimentation, visualization. <!--more-->
-I aim , my next project will be to map text or visual instructions to continuous robot movements.</p>
+<p>I see online handwriting generation — predicting pen strokes in real time — as a fun project that relates to <strong>robotic trajectory modeling</strong>. A robot typically follows a sequence of motor commands (like Δx and Δy) plus discrete events (like lifting a pen or opening a gripper). My goal was to feel extremely comfortable with building a multimodal transformer for a real task, with everything from scratch: data processing, model development, training pipelines, experimentation, visualization. <!--more-->
+My larger goal is to unify these ideas into a more general foundation model that can handle text or visual inputs and produce continuous movements, whether handwriting strokes or robot actions.</p>
 
 <p>I’ll go over:</p>
 
 <ul>
   <li>My <strong>data representation</strong> with Δx, Δy, pen lift.</li>
   <li>Why discrete <strong>transformers</strong> improved over the <strong>RNN + GMM</strong> approach for me.</li>
+  <li>Moving to a multitask, multimodal model.</li>
   <li>Debugging tips: overfitting on small dataset subsets, cross-attention visualization, and more.</li>
   <li>How this approach ties into SOTA robotic transformers.</li>
   <li>Final results and next steps, including bridging to massive <strong>foundation models</strong>.</li>
@@ -17,7 +18,7 @@ I aim , my next project will be to map text or visual instructions to continuous
 
 <h2 id="where-robotics-fits-in">Where Robotics Fits In</h2>
 
-<p><strong>Online handwriting</strong> is essentially a 2D trajectory with an event signal (pen lift). A <strong>robot manipulator</strong> in 3D or 6D space can be described similarly: each step updates joint positions, and a discrete signal says “gripper open” or “gripper closed.”</p>
+<p><strong>Online handwriting</strong> is essentially a 2D trajectory plus a “lift pen” signal. A <strong>robot manipulator</strong> in 3D or 6D space similarly has continuous joint positions and a “gripper open/closed” signal. Both are sequential movement tasks with discrete events, and I thought about modeling my data in the way that a robot model might tokenize joint and gripper signals.</p>
 
 <h5 id="connecting-to-sota-robotics-transformers">Connecting to SOTA robotics transformers</h5>
 
@@ -40,14 +41,60 @@ I aim , my next project will be to map text or visual instructions to continuous
   </li>
   <li>
     <p><strong>Pi-0</strong></p>
+
     <ul>
-      <li><strong>Why it relates:</strong> <a href="https://arxiv.org/pdf/2410.24164v1">Pi-0</a>, from Physical Intelligence, integrates vision, language, and proprioception into a single embedding space. It uses action chunking and flow matching to model complex continuous actions at high frequencies up to 50 Hz.</li>
+      <li><strong>What it is:</strong> <a href="https://arxiv.org/pdf/2410.24164v1">Pi-0</a>, from Physical Intelligence, integrates vision, language, and proprioception into a single embedding space. It uses action chunking and flow matching to model complex continuous actions at high frequencies up to 50 Hz.</li>
       <li><strong>Why it relates:</strong> Handwriting generation deals with trajectories at lower frequencies, but the principle is the same: refine trajectory generation in a globally coherent way.</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>HAMSTER</strong></p>
+
+    <ul>
+      <li>
+        <p><strong>What it is:</strong> <a href="https://hamster-robot.github.io/paper.pdf">HAMSTER</a> is a <strong>hierarchical vision-language-action</strong> approach from NVIDIA/UW/USC that came out after the first draft of this blog post. It trains a large VLM to produce a coarse 2D path, then hands that path off to a smaller, 3D-aware policy for precise manipulation. Super relevant, so I’ll dig into this one more!</p>
+      </li>
+      <li>
+        <p><strong>How trajectories help</strong>:</p>
+
+        <ul>
+          <li>
+            <p>Learning in robotics often struggles because of:</p>
+
+            <ul>
+              <li><strong>Expensive on-robot data</strong>: Collecting huge labeled image-action datasets is time-consuming and costly.</li>
+              <li><strong>Overly specialized policies</strong>: A monolithic vision-action model tends not to generalize well to new tasks or embodiments.</li>
+              <li><strong>Inference frequency constraints</strong>: Large VLMs can’t always run at the frequency (e.g. 50Hz) needed for fine, real-time control.<br /><br /></li>
+            </ul>
+          </li>
+          <li>
+            <p>HAMSTER solves this by predicting a 2D path in the camera image, keeping the VLM <strong>embodiment agnostic</strong>. It doesn’t need any details about the robot shape or degrees of freedom: just marks where to move in 2D space. A smaller, specialized policy then converts that path into precise 3D actions for whatever robot is actually used.</p>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <p><strong>Leveraging off-domain data</strong>:</p>
+
+        <ul>
+          <li>
+            <p>Because HAMSTER only needs 2D trajectories rather than explicit robot actions, it can fine-tune on cheaper data sources (e.g. action-free videos or physics simulations) using:</p>
+
+            <ul>
+              <li>Point tracking: track a person’s hand or object in a video</li>
+              <li>Hand-sketching: a human sketches the path directly on an image</li>
+              <li>Proprioceptive projection: known joint positions are projected onto a 2D camera view <br /><br /></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <p><strong>Why it relates:</strong> HAMSTER focuses on robotic manipulation, but 2D trajectories apply equally to handwriting. We can find endless images of text online but lack stroke-by-stroke datasets. If we just approximate or extract 2D strokes from those images, a large VLM could propose coarse strokes that a smaller policy refines into Δx, Δy commands.</p>
+      </li>
     </ul>
   </li>
 </ol>
 
-<p><strong>Online handwriting</strong> is a smaller domain that uses similar transformer blocks you’d find above, but at a lower dimension.</p>
+<p>These approaches cover vision-language data, 2D trajectories, and a separation of coarse and fine control, and highlight how <strong>trajectory-based</strong> representation can better use foundation models for precise motion policies. Online handwriting is certainly a smaller domain and scope, but relies on the same fundamental transformer approach.</p>
 
 <hr />
 
@@ -108,7 +155,7 @@ I aim , my next project will be to map text or visual instructions to continuous
   </li>
 </ol>
 
-<h5 id="3-unconditional-generation-with-a-transformer">3) Unconditional generation with a transformer</h5>
+<h5 id="3-tokenizing-handwriting-strokes">3) Tokenizing handwriting strokes</h5>
 
 <p>First, I used <strong>discrete binning</strong> of Δx and Δy to turn continuous deltas into discrete tokens.
 The original distribution of Δx and Δy values shows how most stroke movements are small and clustered around zero, while larger movements are significantly less frequent.</p>
@@ -138,27 +185,81 @@ Merge any bins with low data counts and adding extra bins where data was densest
 
 <p><img src="/assets/images/image7.png" alt="Screenshot 7: Adaptive Binning Bin Edges" /></p>
 
-<p>You can see that Δx and Δy are evenly distributed in their token classes rather than being concentrated in a few highly populated ones. Unlike uniform binning, which would have wasted resolution on rare large movements, small pen adjustments and larger strokes are properly represented.</p>
+<p>You can see that Δx and Δy are evenly distributed in their token classes, rather than being concentrated in a few highly populated ones. Small pen adjustments and larger strokes are properly represented, whereas uniform binning would have wasted resolution on rare big moves.</p>
 
 <p><img src="/assets/images/image8.png" alt="Screenshot 8: Adaptive Binning Applied to Δx, Δy" /></p>
 
-<p>Now, it’s more straightforward for the model to classify the next token with standard cross-entropy loss, rather than needing to regress to floating-point values.</p>
+<p>Great! Now the model can just classify the next token with standard cross-entropy loss, rather than needing to regress to floating-point values.</p>
 
-<h6 id="i-first-tested-a-transformer-that-generates-new-strokes-based-on-previous-strokes">I first tested a <strong>transformer</strong> that generates new strokes based on previous strokes:</h6>
+<h6 id="tokenizer">Tokenizer</h6>
+
+<p>At first, I used <a href="https://github.com/openai/tiktoken">tiktoken</a>, the tokenizer for GPT-4 with a 100K subword vocabulary. When my model wouldn’t converge, the first “duh” moment was that it was obviously overkill for my simple dataset and use case. I wrote a custom ASCII tokenizer of just 96 characters.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">CharTokenizer</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">pad_token</span> <span class="o">=</span> <span class="s">"[PAD]"</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">unk_token</span> <span class="o">=</span> <span class="s">"[UNK]"</span>
+
+        <span class="n">ascii_punct</span> <span class="o">=</span> <span class="n">string</span><span class="p">.</span><span class="n">punctuation</span>
+        <span class="n">chars</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="n">string</span><span class="p">.</span><span class="n">ascii_lowercase</span><span class="p">)</span>
+            <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">string</span><span class="p">.</span><span class="n">ascii_uppercase</span><span class="p">)</span>
+            <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">string</span><span class="p">.</span><span class="n">digits</span><span class="p">)</span>
+            <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">ascii_punct</span><span class="p">)</span>
+            <span class="o">+</span> <span class="p">[</span><span class="s">" "</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="p">.</span><span class="n">itos</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="p">.</span><span class="n">pad_token</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">unk_token</span><span class="p">]</span> <span class="o">+</span> <span class="n">chars</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">stoi</span> <span class="o">=</span> <span class="p">{</span><span class="n">ch</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">itos</span><span class="p">)}</span>
+
+        <span class="bp">self</span><span class="p">.</span><span class="n">vocab_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">itos</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_preprocess_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">text</span><span class="p">.</span><span class="n">replace</span><span class="p">(</span><span class="s">"’"</span><span class="p">,</span> <span class="s">"'"</span><span class="p">)</span>
+                <span class="p">.</span><span class="n">replace</span><span class="p">(</span><span class="s">"‘"</span><span class="p">,</span> <span class="s">"'"</span><span class="p">)</span>
+                <span class="p">.</span><span class="n">replace</span><span class="p">(</span><span class="s">"“"</span><span class="p">,</span> <span class="s">'"'</span><span class="p">)</span>
+                <span class="p">.</span><span class="n">replace</span><span class="p">(</span><span class="s">"”"</span><span class="p">,</span> <span class="s">'"'</span><span class="p">)</span>
+                <span class="p">.</span><span class="n">replace</span><span class="p">(</span><span class="s">"—"</span><span class="p">,</span> <span class="s">"-"</span><span class="p">)</span>
+                <span class="p">.</span><span class="n">replace</span><span class="p">(</span><span class="s">"–"</span><span class="p">,</span> <span class="s">"-"</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">re</span><span class="p">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s">"[^\x20-\x7E]"</span><span class="p">,</span> <span class="s">""</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">text</span>
+
+    <span class="k">def</span> <span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">max_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">_preprocess_text</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+        <span class="n">tokens</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">stoi</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="k">if</span> <span class="n">ch</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">stoi</span> <span class="k">else</span> <span class="bp">self</span><span class="p">.</span><span class="n">stoi</span><span class="p">[</span><span class="bp">self</span><span class="p">.</span><span class="n">unk_token</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">text</span>
+        <span class="p">]</span>
+
+        <span class="c1"># Truncate if too long
+</span>        <span class="n">tokens</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[:</span><span class="n">max_length</span><span class="p">]</span>
+        <span class="c1"># Pad if too short
+</span>        <span class="n">tokens</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">self</span><span class="p">.</span><span class="n">stoi</span><span class="p">[</span><span class="bp">self</span><span class="p">.</span><span class="n">pad_token</span><span class="p">]]</span> <span class="o">*</span> <span class="p">(</span><span class="n">max_length</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">tokens</span>
+
+    <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">""</span><span class="p">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">itos</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">itos</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="p">.</span><span class="n">unk_token</span>
+            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">token_ids</span>
+        <span class="p">)</span>
+</code></pre></div></div>
+
+<h5 id="4-unconditional-generation-with-a-transformer">4) Unconditional generation with a transformer</h5>
+
+<p>I first tested a transformer that generated new strokes based on previous strokes:</p>
 
 <ul>
-  <li>
-    <p><strong>Self-attention on stroke tokens</strong><br />
-The transformer processes each token (Δx, Δy, pen lift), learning how strokes typically flow over time.</p>
-  </li>
-  <li>
-    <p><strong>Scribble-like outputs</strong><br />
-With no text to guide it, the model produces free-form strokes. These can look like letters or loops, confirming it can generate coherent movement patterns before adding text conditioning.</p>
-  </li>
-  <li>
-    <p><strong>Advantages over RNN</strong><br />
-Transformers better capture long-range dependencies through self-attention, and discrete token classification avoids the complexities of continuous sampling or GMM instability.</p>
-  </li>
+  <li><strong>Self-attention on stroke tokens</strong>
+The transformer processes each token (Δx, Δy, pen lift), learning how strokes typically flow over time.</li>
+  <li><strong>Scribble-like outputs</strong>
+With no text to guide it, the model produces free-form strokes. These can look like letters or loops, confirming it can generate coherent movement patterns before adding text conditioning.</li>
+  <li><strong>Advantages over RNN</strong>
+Transformers better capture long-range dependencies through self-attention, and discrete token classification avoids the complexities of continuous sampling or GMM instability.</li>
 </ul>
 
 <hr />
@@ -237,17 +338,57 @@ Transformers better capture long-range dependencies through self-attention, and 
 
 <h4 id="stage-4-architecture-tweaks">Stage 4: Architecture tweaks</h4>
 
-<h4 id="less-is-more">Less is more</h4>
+<h5 id="simplify">Simplify</h5>
 
-<ul>
-  <li>I first tried 8–12 heads and 6–8 layers, but it was overkill that slowed down training because of wasted model capacity on limited data. 2–4 heads and 1–3 layers gave quicker convergence and easier debugging.</li>
-</ul>
+<p>I first tried 8–12 heads and 6–8 layers, but it was overkill that slowed down training because of wasted model capacity on limited data. 2–4 heads and 1–3 layers gave quicker convergence and easier debugging.</p>
 
 <h5 id="visualizing-attention-weights-in-pytorch">Visualizing attention weights in PyTorch</h5>
 
-<ul>
-  <li>While debugging, a huge interpretability boost was subclassing <code class="language-plaintext highlighter-rouge">nn.TransformerDecoderLayer</code> to return cross-attention weights. Plotting them as heatmaps (stroke_tokens × text_tokens) let me check alignment and quickly debug a bunch of situations (e.g. text completely ignored, positional encodings ignored, everything fixated on the first letter).</li>
-</ul>
+<p>While debugging, a huge interpretability boost was subclassing <code class="language-plaintext highlighter-rouge">nn.TransformerDecoderLayer</code> to return cross-attention weights. Plotting them as heatmaps (stroke_tokens × text_tokens) let me check alignment and quickly debug a bunch of situations (e.g. text completely ignored, positional encodings ignored, everything fixated on the first letter).</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">CustomDecoderLayer</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">TransformerDecoderLayer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">nhead</span><span class="p">,</span> <span class="n">dim_feedforward</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">().</span><span class="n">__init__</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">nhead</span><span class="p">,</span> <span class="n">dim_feedforward</span><span class="o">=</span><span class="n">dim_feedforward</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="n">DROPOUT</span><span class="p">,</span> <span class="n">batch_first</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">tgt</span><span class="p">,</span>
+        <span class="n">memory</span><span class="p">,</span>
+        <span class="n">tgt_mask</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">memory_mask</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">tgt_key_padding_mask</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">memory_key_padding_mask</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">return_attn_weights</span><span class="o">=</span><span class="bp">False</span>
+    <span class="p">):</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">self_attn_weights</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">self_attn</span><span class="p">(</span>
+            <span class="n">tgt</span><span class="p">,</span> <span class="n">tgt</span><span class="p">,</span> <span class="n">tgt</span><span class="p">,</span>
+            <span class="n">attn_mask</span><span class="o">=</span><span class="n">tgt_mask</span><span class="p">,</span>
+            <span class="n">key_padding_mask</span><span class="o">=</span><span class="n">tgt_key_padding_mask</span><span class="p">,</span>
+            <span class="n">need_weights</span><span class="o">=</span><span class="n">return_attn_weights</span>
+        <span class="p">)</span>
+        <span class="n">tgt</span> <span class="o">=</span> <span class="n">tgt</span> <span class="o">+</span> <span class="bp">self</span><span class="p">.</span><span class="n">dropout1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">tgt</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">norm1</span><span class="p">(</span><span class="n">tgt</span><span class="p">)</span>
+
+        <span class="n">x</span><span class="p">,</span> <span class="n">cross_attn_weights</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">multihead_attn</span><span class="p">(</span>
+            <span class="n">tgt</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span>
+            <span class="n">attn_mask</span><span class="o">=</span><span class="n">memory_mask</span><span class="p">,</span>
+            <span class="n">key_padding_mask</span><span class="o">=</span><span class="n">memory_key_padding_mask</span><span class="p">,</span>
+            <span class="n">need_weights</span><span class="o">=</span><span class="n">return_attn_weights</span>
+        <span class="p">)</span>
+        <span class="n">tgt</span> <span class="o">=</span> <span class="n">tgt</span> <span class="o">+</span> <span class="bp">self</span><span class="p">.</span><span class="n">dropout2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">tgt</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">norm2</span><span class="p">(</span><span class="n">tgt</span><span class="p">)</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">linear2</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">dropout</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">activation</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">linear1</span><span class="p">(</span><span class="n">tgt</span><span class="p">))))</span>
+        <span class="n">tgt</span> <span class="o">=</span> <span class="n">tgt</span> <span class="o">+</span> <span class="bp">self</span><span class="p">.</span><span class="n">dropout3</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">tgt</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">norm3</span><span class="p">(</span><span class="n">tgt</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_attn_weights</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">tgt</span><span class="p">,</span> <span class="n">self_attn_weights</span><span class="p">,</span> <span class="n">cross_attn_weights</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">tgt</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+</code></pre></div></div>
+
+<p><img src="/assets/images/image9.png" alt="Screenshot: cross-attention weight visualization" /></p>
 
 <hr />
 
@@ -352,6 +493,8 @@ Expand from 2D pen strokes to 3D or 6D manipulator movements. The model’s text
 </ul>
 
 <p>After trying a lot of hyperparameter tuning and model tweaks, I switched to discrete tokens, which eliminated this issue.</p>
+
+<hr />
 
 <h5 id="early-discrete-transformer-generation">Early discrete transformer generation</h5>
 
@@ -477,4 +620,4 @@ Expand from 2D pen strokes to 3D or 6D manipulator movements. The model’s text
 
     <p>I really liked the exercise of <strong>online</strong> handwriting vs. offline (static images of text). Robotics is fundamentally about continuous action sequences, and online data is essential for capturing that moment-to-moment motion, so I recommend trying this project out for yourself :)</p>
   </li>
-</ol>]]></content><author><name></name></author><category term="ml" /><category term="robotics" /><category term="transformers" /><summary type="html"><![CDATA[Introduction I see online handwriting generation — predicting pen strokes in real time — as a fun project akin to robotic trajectory modeling. A robot typically follows a sequence of motor commands (like Δx and Δy) plus discrete events (like lifting a pen or opening a gripper). My goal was to feel extremely comfortable with multimodal transformer modeling for a real task that required building everything from scratch: data processing, model development, training pipelines, experimentation, visualization.]]></summary></entry></feed>
+</ol>]]></content><author><name></name></author><category term="ml" /><category term="robotics" /><category term="transformers" /><summary type="html"><![CDATA[Introduction I see online handwriting generation — predicting pen strokes in real time — as a fun project that relates to robotic trajectory modeling. A robot typically follows a sequence of motor commands (like Δx and Δy) plus discrete events (like lifting a pen or opening a gripper). My goal was to feel extremely comfortable with building a multimodal transformer for a real task, with everything from scratch: data processing, model development, training pipelines, experimentation, visualization.]]></summary></entry></feed>
