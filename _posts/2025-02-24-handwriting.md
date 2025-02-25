@@ -7,7 +7,8 @@ categories: [ml, robotics, transformers]
 
 ## Introduction
 
-I see online handwriting generation — predicting pen strokes in real time — as a fun project akin to **robotic trajectory modeling**. A robot typically follows a sequence of motor commands (like Δx and Δy) plus discrete events (like lifting a pen or opening a gripper). My goal was to feel extremely comfortable with multimodal transformer modeling for a real task that required building everything from scratch: data processing, model development, training pipelines, experimentation, visualization. Then, my next project will be mapping text or visual instructions to continuous robot movements.
+I see online handwriting generation — predicting pen strokes in real time — as a fun project akin to **robotic trajectory modeling**. A robot typically follows a sequence of motor commands (like Δx and Δy) plus discrete events (like lifting a pen or opening a gripper). My goal was to feel extremely comfortable with multimodal transformer modeling for a real task that required building everything from scratch: data processing, model development, training pipelines, experimentation, visualization. <!--more-->
+I aim , my next project will be to map text or visual instructions to continuous robot movements.
 
 I'll go over:
 
@@ -128,6 +129,37 @@ Now it was time to make the model more useful and multimodal. I wanted to input 
 - **Cross-attention validation**: I monitored attention matrices to ensure stroke tokens referenced text embeddings when text was present, while still autoregressing correctly on strokes when text was absent. If attention was uniformly distributed across text tokens, it indicated the model was ignoring the text, requiring adjustments to positional encodings or cross-attention layers.
 
 This text-conditioned generation allowed the model to map language directly onto structured, sequential handwriting motion.
+
+```python
+class TransformerStrokeModel(nn.Module):
+    /* ... */
+    def _generate_causal_mask(self, seq_len, device):
+        mask = torch.triu(torch.ones(seq_len, seq_len, device=device), diagonal=1)
+        return mask.masked_fill(mask == 1, float('-inf'))
+
+    def forward(self, stroke_batch, text_features=None, text_pad_mask=None, return_attn=False):
+        b, t, _ = stroke_batch.shape
+
+        x_x = self.embedding_x(stroke_batch[:, :, 1])
+        x_y = self.embedding_y(stroke_batch[:, :, 2])
+        combined = torch.cat([x_x, x_y], dim=-1)
+        combined = self.fc_embed(combined)
+        combined = self.position_encoding_strokes(combined)
+
+        /* ... */
+        decoded, cross_attn_list = self.decoder(
+            combined, text_features,
+            tgt_mask=causal_mask,
+            return_attn_weights=True,
+            memory_key_padding_mask=text_pad_mask,
+        )
+
+        logits_x = self.fc_out_x(decoded)
+        logits_y = self.fc_out_y(decoded)
+        pen_logits = self.fc_pen_lift(decoded).squeeze(-1)
+
+        /* ... */
+```
 
 ---
 

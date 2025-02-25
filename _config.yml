@@ -4,6 +4,7 @@ theme: minima
 markdown: kramdown
 highlighter: rouge
 future: true
+excerpt_separator: <!--more-->
 
 paginate: 5
 
