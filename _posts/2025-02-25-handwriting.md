@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Scribble Trajectories: Building an Online Handwriting Transformer"
+title: "Scribble trajectories: building an online handwriting transformer"
 date: 2025-02-25
 categories: [ml, robotics, transformers]
 ---
@@ -21,7 +21,7 @@ I'll go over:
 
 ---
 
-## Where Robotics Fits In
+## Where robotics fits in
 
 **Online handwriting** is essentially a 2D trajectory plus a "lift pen" signal. A **robot manipulator** in 3D or 6D space similarly has continuous joint positions and a "gripper open/closed" signal. Both are sequential movement tasks with discrete events, and I thought about modeling my data in the way that a robot model might tokenize joint and gripper signals.
 
@@ -70,9 +70,9 @@ These approaches cover vision-language data, 2D trajectories, and a separation o
 
 ---
 
-## Model Development
+## Model development
 
-#### Stage 1: Data representation and early models
+#### Stage 1: data representation and early models
 
 ##### 1) Δx, Δy, pen lift Format
 
@@ -227,7 +227,7 @@ I first tested a transformer that generated new strokes based on previous stroke
 
 ---
 
-#### Stage 2: Shifting to conditional generation (text-to-handwriting)
+#### Stage 2: shifting to conditional generation (text-to-handwriting)
 
 ##### Alignment and sequence length
 
@@ -282,7 +282,7 @@ class TransformerStrokeModel(nn.Module):
 
 ---
 
-#### Stage 3: Debugging strategy
+#### Stage 3: debugging strategy
 
 ##### Overfitting on one example, then five, then more
 
@@ -297,7 +297,7 @@ class TransformerStrokeModel(nn.Module):
 
 ---
 
-#### Stage 4: Architecture tweaks
+#### Stage 4: architecture tweaks
 
 ##### Simplify
 
@@ -359,7 +359,7 @@ class CustomDecoderLayer(nn.TransformerDecoderLayer):
 
 ---
 
-#### Stage 5: Refining conditional generation
+#### Stage 5: refining conditional generation
 
 With the basics working, I could now focus on more interesting tweaks, like:
 
@@ -369,7 +369,7 @@ With the basics working, I could now focus on more interesting tweaks, like:
 
 ---
 
-#### Stage 6: Final results and observations
+#### Stage 6: final results and observations
 
 Plenty of good:
 
@@ -387,9 +387,9 @@ I spent a lot of time visualizing:
 
 ---
 
-#### Stage 7: Future directions and extensions
+#### Stage 7: future directions and extensions
 
-- **Handwriting → text**  
+- **Handwriting to text**  
   The inverse model is basically handwriting recognition. This closes the loop and could enable a single multimodal, multitask model that does handwriting generation and recognition.
 
 - **Style transfer**  
@@ -410,7 +410,7 @@ I spent a lot of time visualizing:
   - **Energy-based models:**  
     EBMs define an energy function over data configurations. I spent a number of months studying EBM math and typical architectures, which helped when considering more flexible training objectives or capturing complex multimodal distributions. Going further in this direction could produce more robust handwriting outputs while reducing mode collapse.
 
-- **Interactive Demos**  
+- **Interactive demo**  
   A web-based interface where users type text and see real-time text generation. Also great for collecting more data.
 
 - **Robotics**  
@@ -425,7 +425,7 @@ I spent a lot of time visualizing:
 
 ![Screenshot 5: Early Transformer + MDN Generation](/assets/images/image5.png)
 
-###### **Identifying the Issue**
+###### **Identifying the issue**
 
 - The generated strokes consistently move up and to the right, revealing that the model **always selects the same Gaussian component** instead of adapting to the handwriting context.
 - Even though the transformer theoretically improved long-range dependencies, the unstable MDN head remained a bottleneck, producing repetitive trajectories.
@@ -526,7 +526,7 @@ This level of convergence required many iterations of model architecture refinem
 
 ---
 
-## Conclusion: Big-Picture Takeaways
+## Conclusion: big-picture takeaways
 
 1. **Trajectory modeling**  
    I used online handwriting as a small-scale example, but the same sequence-based ideas apply to **bigger robotic tasks**. Ongoing research increasingly relies on trajectory modeling for everything from gripper motions to mobile navigation.

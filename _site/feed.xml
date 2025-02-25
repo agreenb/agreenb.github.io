@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-02-25T17:37:25-05:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">agreenb.github.io</title><entry><title type="html">Scribble Trajectories: Building an Online Handwriting Transformer</title><link href="http://localhost:4000/ml/robotics/transformers/2025/02/25/handwriting.html" rel="alternate" type="text/html" title="Scribble Trajectories: Building an Online Handwriting Transformer" /><published>2025-02-25T00:00:00-05:00</published><updated>2025-02-25T00:00:00-05:00</updated><id>http://localhost:4000/ml/robotics/transformers/2025/02/25/handwriting</id><content type="html" xml:base="http://localhost:4000/ml/robotics/transformers/2025/02/25/handwriting.html"><![CDATA[<h2 id="introduction">Introduction</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-02-25T17:45:06-05:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">agreenb.github.io</title><entry><title type="html">Scribble trajectories: building an online handwriting transformer</title><link href="http://localhost:4000/ml/robotics/transformers/2025/02/25/handwriting.html" rel="alternate" type="text/html" title="Scribble trajectories: building an online handwriting transformer" /><published>2025-02-25T00:00:00-05:00</published><updated>2025-02-25T00:00:00-05:00</updated><id>http://localhost:4000/ml/robotics/transformers/2025/02/25/handwriting</id><content type="html" xml:base="http://localhost:4000/ml/robotics/transformers/2025/02/25/handwriting.html"><![CDATA[<h2 id="introduction">Introduction</h2>
 
 <p>I took on online handwriting generation — predicting pen strokes in real time — as a fun project that translates naturally <strong>robotic trajectory modeling</strong>. A robot follows continuous motor commands (e.g. Δx and Δy) plus discrete events (e.g. gripper opens). My primary goal was to gain hands-on experience building a <strong>multimodal transformer</strong> end to end: from tokenizing data, to training, to visualizing results. <!--more-->
 My larger goal will be to bring these ideas into a large foundation model that can produce continuous movements, whether handwriting strokes or robot actions.</p>
@@ -16,7 +16,7 @@ My larger goal will be to bring these ideas into a large foundation model that c
 
 <hr />
 
-<h2 id="where-robotics-fits-in">Where Robotics Fits In</h2>
+<h2 id="where-robotics-fits-in">Where robotics fits in</h2>
 
 <p><strong>Online handwriting</strong> is essentially a 2D trajectory plus a “lift pen” signal. A <strong>robot manipulator</strong> in 3D or 6D space similarly has continuous joint positions and a “gripper open/closed” signal. Both are sequential movement tasks with discrete events, and I thought about modeling my data in the way that a robot model might tokenize joint and gripper signals.</p>
 
@@ -98,9 +98,9 @@ My larger goal will be to bring these ideas into a large foundation model that c
 
 <hr />
 
-<h2 id="model-development">Model Development</h2>
+<h2 id="model-development">Model development</h2>
 
-<h4 id="stage-1-data-representation-and-early-models">Stage 1: Data representation and early models</h4>
+<h4 id="stage-1-data-representation-and-early-models">Stage 1: data representation and early models</h4>
 
 <h5 id="1-δx-δy-pen-lift-format">1) Δx, Δy, pen lift Format</h5>
 
@@ -279,7 +279,7 @@ Transformers better capture long-range dependencies through self-attention, and 
 
 <hr />
 
-<h4 id="stage-2-shifting-to-conditional-generation-text-to-handwriting">Stage 2: Shifting to conditional generation (text-to-handwriting)</h4>
+<h4 id="stage-2-shifting-to-conditional-generation-text-to-handwriting">Stage 2: shifting to conditional generation (text-to-handwriting)</h4>
 
 <h5 id="alignment-and-sequence-length">Alignment and sequence length</h5>
 
@@ -337,7 +337,7 @@ Transformers better capture long-range dependencies through self-attention, and 
 
 <hr />
 
-<h4 id="stage-3-debugging-strategy">Stage 3: Debugging strategy</h4>
+<h4 id="stage-3-debugging-strategy">Stage 3: debugging strategy</h4>
 
 <h5 id="overfitting-on-one-example-then-five-then-more">Overfitting on one example, then five, then more</h5>
 
@@ -356,7 +356,7 @@ Transformers better capture long-range dependencies through self-attention, and 
 
 <hr />
 
-<h4 id="stage-4-architecture-tweaks">Stage 4: Architecture tweaks</h4>
+<h4 id="stage-4-architecture-tweaks">Stage 4: architecture tweaks</h4>
 
 <h5 id="simplify">Simplify</h5>
 
@@ -417,7 +417,7 @@ Transformers better capture long-range dependencies through self-attention, and 
 
 <hr />
 
-<h4 id="stage-5-refining-conditional-generation">Stage 5: Refining conditional generation</h4>
+<h4 id="stage-5-refining-conditional-generation">Stage 5: refining conditional generation</h4>
 
 <p>With the basics working, I could now focus on more interesting tweaks, like:</p>
 
@@ -429,7 +429,7 @@ Transformers better capture long-range dependencies through self-attention, and 
 
 <hr />
 
-<h4 id="stage-6-final-results-and-observations">Stage 6: Final results and observations</h4>
+<h4 id="stage-6-final-results-and-observations">Stage 6: final results and observations</h4>
 
 <p>Plenty of good:</p>
 
@@ -453,11 +453,11 @@ Transformers better capture long-range dependencies through self-attention, and 
 
 <hr />
 
-<h4 id="stage-7-future-directions-and-extensions">Stage 7: Future directions and extensions</h4>
+<h4 id="stage-7-future-directions-and-extensions">Stage 7: future directions and extensions</h4>
 
 <ul>
   <li>
-    <p><strong>Handwriting → text</strong><br />
+    <p><strong>Handwriting to text</strong><br />
 The inverse model is basically handwriting recognition. This closes the loop and could enable a single multimodal, multitask model that does handwriting generation and recognition.</p>
   </li>
   <li>
@@ -492,7 +492,7 @@ EBMs define an energy function over data configurations. I spent a number of mon
     </ul>
   </li>
   <li>
-    <p><strong>Interactive Demos</strong><br />
+    <p><strong>Interactive demo</strong><br />
 A web-based interface where users type text and see real-time text generation. Also great for collecting more data.</p>
   </li>
   <li>
@@ -510,7 +510,7 @@ Expand from 2D pen strokes to 3D or 6D manipulator movements. The model’s text
 
   <p><img src="/assets/images/image5.png" alt="Screenshot 5: Early Transformer + MDN Generation" /></p>
 
-  <h6 id="identifying-the-issue"><strong>Identifying the Issue</strong></h6>
+  <h6 id="identifying-the-issue"><strong>Identifying the issue</strong></h6>
 
   <ul>
     <li>The generated strokes consistently move up and to the right, revealing that the model <strong>always selects the same Gaussian component</strong> instead of adapting to the handwriting context.</li>
@@ -630,7 +630,7 @@ This level of convergence required many iterations of model architecture refinem
 
 <hr />
 
-<h2 id="conclusion-big-picture-takeaways">Conclusion: Big-Picture Takeaways</h2>
+<h2 id="conclusion-big-picture-takeaways">Conclusion: big-picture takeaways</h2>
 
 <ol>
   <li>
