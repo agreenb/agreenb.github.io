@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-02-25T17:55:45-05:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">agreenb.github.io</title><entry><title type="html">Scribble trajectories: building an online handwriting transformer</title><link href="http://localhost:4000/ml/robotics/transformers/2025/02/25/handwriting.html" rel="alternate" type="text/html" title="Scribble trajectories: building an online handwriting transformer" /><published>2025-02-25T00:00:00-05:00</published><updated>2025-02-25T00:00:00-05:00</updated><id>http://localhost:4000/ml/robotics/transformers/2025/02/25/handwriting</id><content type="html" xml:base="http://localhost:4000/ml/robotics/transformers/2025/02/25/handwriting.html"><![CDATA[<h2 id="introduction">Introduction</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-02-26T15:33:13-05:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">agreenb.github.io</title><entry><title type="html">Scribble trajectories: building an online handwriting transformer</title><link href="http://localhost:4000/ml/robotics/transformers/2025/02/25/handwriting.html" rel="alternate" type="text/html" title="Scribble trajectories: building an online handwriting transformer" /><published>2025-02-25T00:00:00-05:00</published><updated>2025-02-25T00:00:00-05:00</updated><id>http://localhost:4000/ml/robotics/transformers/2025/02/25/handwriting</id><content type="html" xml:base="http://localhost:4000/ml/robotics/transformers/2025/02/25/handwriting.html"><![CDATA[<h2 id="introduction">Introduction</h2>
 
 <p>At the end of last year, I spent <strong>months at Recurse Center</strong> diving deep into theory and state-of-the-art research (EBMs, VAEs, transformers, diffusion models, RL, etc) while revisiting the math-heavy fundamentals of machine learning. Now, I’m back to building.</p>
 
@@ -456,57 +456,7 @@ Transformers better capture long-range dependencies through self-attention, and 
 
 <hr />
 
-<h4 id="stage-7-future-directions-and-extensions">Stage 7: future directions and extensions</h4>
-
-<ul>
-  <li>
-    <p><strong>Handwriting to text</strong><br />
-The inverse model is basically handwriting recognition. This closes the loop and could enable a single multimodal, multitask model that does handwriting generation and recognition.</p>
-  </li>
-  <li>
-    <p><strong>Style transfer</strong><br />
-Condition on user-specific samples to replicate personal handwriting styles or emulate various fonts. With a small style embedding or reference strokes, the model can generate text in that style.</p>
-  </li>
-  <li>
-    <p><strong>Diffusion, VAEs, and EBMs</strong></p>
-
-    <ul>
-      <li>
-        <p><strong>Diffusion models:</strong><br />
-Instead of discrete or GMM-based sampling, a diffusion approach could produce smoother strokes by iteratively refining a noisy sequence. Latent diffusion models include a VAE-like encoder-decoder pipeline that compresses the data before applying the denoising process.</p>
-
-        <ul>
-          <li>
-            <p><a href="https://arxiv.org/pdf/2205.09991">Planning with Diffusion for Flexible Behavior Synthesis</a> proposes a non-autoregressive method that predicts all timesteps concurrently, blurring the lines between sampling from a trajectory model and planning with it. Each denoising step focuses on local consistency (nearby timesteps in the past and future), but composing many of these steps creats global coherence. Applied to handwriting or robot motion, this approach can help ensure the entire stroke or trajectory is consistent, rather than being generated purely from past context in a causal manner.</p>
-          </li>
-          <li>
-            <p>Pi-0 replaces standard cross-entropy with a <strong>flow matching</strong> loss in a decoder-only transformer. They maintain separate weights for the diffusion tokens, effectively embedding diffusion within a vision-language-action pipeline to handle high-frequency action control. A handwriting model could do the same.</p>
-          </li>
-        </ul>
-      </li>
-      <li>
-        <p><strong>Variational autoencoders:</strong><br />
-A VAE would encode Δx, Δy sequences into a latent space and then decodes them back into strokes, allowing style interpolation or manipulation in the latent space.</p>
-      </li>
-      <li>
-        <p><strong>Energy-based models:</strong><br />
-EBMs define an energy function over data configurations. I spent a number of months studying EBM math and typical architectures, which helped when considering more flexible training objectives or capturing complex multimodal distributions. Going further in this direction could produce more robust handwriting outputs while reducing mode collapse.</p>
-      </li>
-    </ul>
-  </li>
-  <li>
-    <p><strong>Interactive demo</strong><br />
-A web-based interface where users type text and see real-time text generation. Also great for collecting more data.</p>
-  </li>
-  <li>
-    <p><strong>Robotics</strong><br />
-Expand from 2D pen strokes to 3D or 6D manipulator movements. The model’s text conditioning can guide a robot to write letters on a whiteboard or execute more complex tasks, similar to methods like RT-2 or Pi-0 that fuse language with action tokens in a transformer.</p>
-  </li>
-</ul>
-
-<hr />
-
-<h2 id="example-outputs">Example outputs</h2>
+<h4 id="example-outputs">Example outputs</h4>
 
 <details>
   <summary>Click for early MDN generation</summary>
@@ -630,6 +580,56 @@ This level of convergence required many iterations of model architecture refinem
   </ul>
 
 </details>
+
+<hr />
+
+<h4 id="stage-7-future-directions-and-extensions">Stage 7: future directions and extensions</h4>
+
+<ul>
+  <li>
+    <p><strong>Handwriting to text</strong><br />
+The inverse model is basically handwriting recognition. This closes the loop and could enable a single multimodal, multitask model that does handwriting generation and recognition.</p>
+  </li>
+  <li>
+    <p><strong>Style transfer</strong><br />
+Condition on user-specific samples to replicate personal handwriting styles or emulate various fonts. With a small style embedding or reference strokes, the model can generate text in that style.</p>
+  </li>
+  <li>
+    <p><strong>Diffusion, VAEs, and EBMs</strong></p>
+
+    <ul>
+      <li>
+        <p><strong>Diffusion models:</strong><br />
+Instead of discrete or GMM-based sampling, a diffusion approach could produce smoother strokes by iteratively refining a noisy sequence. Latent diffusion models include a VAE-like encoder-decoder pipeline that compresses the data before applying the denoising process.</p>
+
+        <ul>
+          <li>
+            <p><a href="https://arxiv.org/pdf/2205.09991">Planning with Diffusion for Flexible Behavior Synthesis</a> proposes a non-autoregressive method that predicts all timesteps concurrently, blurring the lines between sampling from a trajectory model and planning with it. Each denoising step focuses on local consistency (nearby timesteps in the past and future), but composing many of these steps creats global coherence. Applied to handwriting or robot motion, this approach can help ensure the entire stroke or trajectory is consistent, rather than being generated purely from past context in a causal manner.</p>
+          </li>
+          <li>
+            <p>Pi-0 replaces standard cross-entropy with a <strong>flow matching</strong> loss in a decoder-only transformer. They maintain separate weights for the diffusion tokens, effectively embedding diffusion within a vision-language-action pipeline to handle high-frequency action control. A handwriting model could do the same.</p>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <p><strong>Variational autoencoders:</strong><br />
+A VAE would encode Δx, Δy sequences into a latent space and then decodes them back into strokes, allowing style interpolation or manipulation in the latent space.</p>
+      </li>
+      <li>
+        <p><strong>Energy-based models:</strong><br />
+EBMs define an energy function over data configurations. I spent a number of months studying EBM math and typical architectures, which helped when considering more flexible training objectives or capturing complex multimodal distributions. Going further in this direction could produce more robust handwriting outputs while reducing mode collapse.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Interactive demo</strong><br />
+A web-based interface where users type text and see real-time text generation. Also great for collecting more data.</p>
+  </li>
+  <li>
+    <p><strong>Robotics</strong><br />
+Expand from 2D pen strokes to 3D or 6D manipulator movements. The model’s text conditioning can guide a robot to write letters on a whiteboard or execute more complex tasks, similar to methods like RT-2 or Pi-0 that fuse language with action tokens in a transformer.</p>
+  </li>
+</ul>
 
 <hr />
 

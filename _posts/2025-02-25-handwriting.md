@@ -390,38 +390,7 @@ I spent a lot of time visualizing:
 
 ---
 
-#### Stage 7: future directions and extensions
-
-- **Handwriting to text**  
-  The inverse model is basically handwriting recognition. This closes the loop and could enable a single multimodal, multitask model that does handwriting generation and recognition.
-
-- **Style transfer**  
-  Condition on user-specific samples to replicate personal handwriting styles or emulate various fonts. With a small style embedding or reference strokes, the model can generate text in that style.
-
-- **Diffusion, VAEs, and EBMs**
-
-  - **Diffusion models:**  
-    Instead of discrete or GMM-based sampling, a diffusion approach could produce smoother strokes by iteratively refining a noisy sequence. Latent diffusion models include a VAE-like encoder-decoder pipeline that compresses the data before applying the denoising process.
-
-    - [Planning with Diffusion for Flexible Behavior Synthesis](https://arxiv.org/pdf/2205.09991) proposes a non-autoregressive method that predicts all timesteps concurrently, blurring the lines between sampling from a trajectory model and planning with it. Each denoising step focuses on local consistency (nearby timesteps in the past and future), but composing many of these steps creats global coherence. Applied to handwriting or robot motion, this approach can help ensure the entire stroke or trajectory is consistent, rather than being generated purely from past context in a causal manner.
-
-    - Pi-0 replaces standard cross-entropy with a **flow matching** loss in a decoder-only transformer. They maintain separate weights for the diffusion tokens, effectively embedding diffusion within a vision-language-action pipeline to handle high-frequency action control. A handwriting model could do the same.
-
-  - **Variational autoencoders:**  
-    A VAE would encode Δx, Δy sequences into a latent space and then decodes them back into strokes, allowing style interpolation or manipulation in the latent space.
-
-  - **Energy-based models:**  
-    EBMs define an energy function over data configurations. I spent a number of months studying EBM math and typical architectures, which helped when considering more flexible training objectives or capturing complex multimodal distributions. Going further in this direction could produce more robust handwriting outputs while reducing mode collapse.
-
-- **Interactive demo**  
-  A web-based interface where users type text and see real-time text generation. Also great for collecting more data.
-
-- **Robotics**  
-  Expand from 2D pen strokes to 3D or 6D manipulator movements. The model's text conditioning can guide a robot to write letters on a whiteboard or execute more complex tasks, similar to methods like RT-2 or Pi-0 that fuse language with action tokens in a transformer.
-
----
-
-## Example outputs
+#### Example outputs
 
 <details markdown="1">
 <summary>Click for early MDN generation</summary>
@@ -526,6 +495,37 @@ This level of convergence required many iterations of model architecture refinem
 - **Improved cross-attention layers**: Careful inspection of attention weights helped uncover bugs.
 
 </details>
+
+---
+
+#### Stage 7: future directions and extensions
+
+- **Handwriting to text**  
+  The inverse model is basically handwriting recognition. This closes the loop and could enable a single multimodal, multitask model that does handwriting generation and recognition.
+
+- **Style transfer**  
+  Condition on user-specific samples to replicate personal handwriting styles or emulate various fonts. With a small style embedding or reference strokes, the model can generate text in that style.
+
+- **Diffusion, VAEs, and EBMs**
+
+  - **Diffusion models:**  
+    Instead of discrete or GMM-based sampling, a diffusion approach could produce smoother strokes by iteratively refining a noisy sequence. Latent diffusion models include a VAE-like encoder-decoder pipeline that compresses the data before applying the denoising process.
+
+    - [Planning with Diffusion for Flexible Behavior Synthesis](https://arxiv.org/pdf/2205.09991) proposes a non-autoregressive method that predicts all timesteps concurrently, blurring the lines between sampling from a trajectory model and planning with it. Each denoising step focuses on local consistency (nearby timesteps in the past and future), but composing many of these steps creats global coherence. Applied to handwriting or robot motion, this approach can help ensure the entire stroke or trajectory is consistent, rather than being generated purely from past context in a causal manner.
+
+    - Pi-0 replaces standard cross-entropy with a **flow matching** loss in a decoder-only transformer. They maintain separate weights for the diffusion tokens, effectively embedding diffusion within a vision-language-action pipeline to handle high-frequency action control. A handwriting model could do the same.
+
+  - **Variational autoencoders:**  
+    A VAE would encode Δx, Δy sequences into a latent space and then decodes them back into strokes, allowing style interpolation or manipulation in the latent space.
+
+  - **Energy-based models:**  
+    EBMs define an energy function over data configurations. I spent a number of months studying EBM math and typical architectures, which helped when considering more flexible training objectives or capturing complex multimodal distributions. Going further in this direction could produce more robust handwriting outputs while reducing mode collapse.
+
+- **Interactive demo**  
+  A web-based interface where users type text and see real-time text generation. Also great for collecting more data.
+
+- **Robotics**  
+  Expand from 2D pen strokes to 3D or 6D manipulator movements. The model's text conditioning can guide a robot to write letters on a whiteboard or execute more complex tasks, similar to methods like RT-2 or Pi-0 that fuse language with action tokens in a transformer.
 
 ---
 
