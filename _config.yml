@@ -8,6 +8,8 @@ excerpt_separator: <!--more-->
 
 paginate: 5
 
+google_analytics: UA-168898166-1
+
 plugins:
   - jekyll-paginate
   - jekyll-seo-tag
