@@ -41,6 +41,10 @@
   font-style: normal;
 }
 
+#experience-heading {
+  margin-top: 100px !important;
+}
+
 body {
   font-family: "proxima_nova_rgregular", Helvetica, Arial, sans-serif;
   font-size: 1em;

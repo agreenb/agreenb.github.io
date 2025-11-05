@@ -62,7 +62,7 @@ body {
 
 h1 {
   font-family: "proxima_nova_rgbold", Helvetica, Arial, sans-serif;
-  font-size: 2.2em;
+  font-size: 1.7em;
 }
 
 .tr {
@@ -229,4 +229,10 @@ a:visited {
 .post-content img {
   max-width: 600px;
   height: auto;
+}
+
+@media (max-width: 768px) {
+  .experience-row {
+    margin-top: 50px;
+  }
 }
